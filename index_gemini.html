@@ -5,186 +5,75 @@
     <title>犬之岛 - 全球矢量生物资产</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500&family=Inter:wght@300;400;600&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --swiss-red: #ff3e3e;
-            --engineering-blue: #3b82f6;
-            --bg-dark: #0a0a0a;
-        }
-
-        body {
-            margin: 0;
-            background-color: #000;
-            color: white;
-            overflow: hidden;
-            font-family: 'Inter', 'Noto Serif SC', serif;
-        }
-
-        canvas {
-            display: block;
-        }
-
-        .glass-sidebar {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(40px) saturate(150%);
-            border-left: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.9);
-        }
-
-        #loading {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #000;
-            z-index: 100;
-            transition: opacity 1s;
-        }
-
-        .continent-label {
-            color: rgba(255, 255, 255, 0.5);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9px;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            padding: 4px 8px;
-            border-left: 1px solid var(--engineering-blue);
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 10px;
-        }
-
-        .sidebar-transition {
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .info-tag {
-            color: #3b82f6;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            margin-bottom: 8px;
-            display: block;
-            text-transform: uppercase;
-            border-left: 2px solid #3b82f6;
-            padding-left: 8px;
-        }
-
-        .info-desc {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 13px;
-            line-height: 1.8;
-            margin-bottom: 24px;
-            font-family: sans-serif;
-            font-weight: 300;
-        }
+        :root { --swiss-red: #ff3e3e; --engineering-blue: #3b82f6; --bg-dark: #0a0a0a; }
+        body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Inter', 'Noto Serif SC', serif; }
+        canvas { display: block; }
+        .glass-sidebar { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(40px) saturate(150%); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: -20px 0 50px rgba(0, 0, 0, 0.9); }
+        #loading { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; background: #000; z-index: 100; transition: opacity 1s; }
+        .continent-label { color: rgba(255, 255, 255, 0.5); font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; padding: 4px 8px; border-left: 1px solid var(--engineering-blue); }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        .sidebar-transition { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .info-tag { color: #3b82f6; font-size: 9px; font-weight: 700; letter-spacing: 0.2em; margin-bottom: 8px; display: block; text-transform: uppercase; border-left: 2px solid #3b82f6; padding-left: 8px; }
+        .info-desc { color: rgba(255, 255, 255, 0.7); font-size: 13px; line-height: 1.8; margin-bottom: 24px; font-family: sans-serif; font-weight: 300; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="text-[10px] tracking-[0.8em] text-blue-300 uppercase animate-pulse">
-    正在同步全球犬类遗传地理数据...
-</div>
+<div id="loading" class="text-[10px] tracking-[0.8em] text-blue-300 uppercase animate-pulse">正在同步全球犬类遗传地理数据...</div>
 
 <div class="absolute top-12 left-12 pointer-events-none z-50">
     <span class="text-xs font-mono text-blue-500 font-bold">01</span>
     <h1 class="text-6xl tracking-[0.5em] font-light opacity-90 mb-2">犬系宇宙</h1>
     <div class="h-[1px] w-12 bg-blue-500/50"></div>
-    <h2 class="swiss-title text-2xl opacity-40 mb-6">Universe OF DOGS</h2>
+    <h2 class="text-2xl opacity-40 mb-6 uppercase">Universe OF DOGS</h2>
     <div class="h-[4px] w-16 bg-white mb-6"></div>
-    <p class="font-mono text-[9px] tracking-widest opacity-40 max-w-[200px] leading-relaxed">
-        GLOBAL BIOLOGICAL VECTOR ASSET MAPPING SYSTEM v2.6.0-MAR_31
-    </p>
+    <p class="font-mono text-[9px] tracking-widest opacity-40 max-w-[200px] leading-relaxed">GLOBAL BIOLOGICAL VECTOR ASSET MAPPING SYSTEM v2.6.0</p>
 </div>
 
-<div id="info-card"
-     class="glass-sidebar fixed right-0 top-0 bottom-0 w-[420px] p-10 sidebar-transition translate-x-full z-50 flex flex-col">
+<div id="info-card" class="glass-sidebar fixed right-0 top-0 bottom-0 w-[420px] p-10 sidebar-transition translate-x-full z-50 flex flex-col">
     <button onclick="closeCard()" class="absolute top-10 right-10 text-white/20 hover:text-white transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="1.5">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
     <div class="mb-10">
-        <span id="target-eng-name"
-              class="text-[10px] text-blue-500 font-bold tracking-[0.3em] uppercase opacity-60 italic">Specimen Archive</span>
-        <h2 id="target-name"
-            class="text-2xl font-medium mt-2 tracking-tight text-white font-serif inline-block border-b border-white/20">
-            品种名称
-        </h2>
+        <span id="target-eng-name" class="text-[10px] text-blue-500 font-bold tracking-[0.3em] uppercase opacity-60 italic">Specimen Archive</span>
+        <h2 id="target-name" class="text-2xl font-medium mt-2 tracking-tight text-white font-serif inline-block border-b border-white/20">品种名称</h2>
     </div>
     <div id="info-content" class="flex-1 overflow-y-auto custom-scrollbar pr-4"></div>
     <div class="mt-6 pt-6 border-t border-white/5 flex justify-between items-center opacity-30 text-[8px] tracking-widest uppercase">
-        <span>Genetic ID: Verified</span>
-        <span>© 2026 Canine Global Mapping</span>
+        <span>Genetic ID: Verified</span><span>© 2026 Canine Global Mapping</span>
     </div>
 </div>
 
 <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
-    import {OrbitControls} from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js';
-    import {
-        CSS2DRenderer,
-        CSS2DObject
-    } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/renderers/CSS2DRenderer.js';
-    import {GLTFLoader} from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/renderers/CSS2DRenderer.js';
+    import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 
-    let scene, camera, renderer, labelRenderer, globe, controls, markers = [];
-    let labelObjects = [], mixers = [];
+    let scene, camera, renderer, labelRenderer, globe, controls;
+    let markers = [], labelObjects = [], mixers = [], allLines = [], dogsData = [];
     let completedCount = 0;
-    const allLines = []; // 用于存储所有连线的引用
-    let dogsData = []; // 初始化为数组
     const clock = new THREE.Clock();
+    const LNG_OFFSET = 90 * (Math.PI / 180);
 
-    // 1. 修改加载函数，确保路径正确
-    async function loadJSON(path) {
-        const response = await fetch(path);
-        if (!response.ok) throw new Error(`无法找到文件: ${path}`);
-        return await response.json();
-    }
+    // 1. 数据同步加载逻辑
+    const loadJSON = path => fetch(path).then(r => r.ok ? r.json() : Promise.reject(`Error: ${path}`));
+    const paths = ['./assets/牧羊犬和牧牛犬/package.json', './assets/尖嘴犬/package.json'];
 
-    // 1. 把所有路径放进数组里（想加多少加多少）
-    const paths = [
-        './assets/牧羊犬和牧牛犬/package.json',
-        './assets/尖嘴犬/package.json'
-        // 继续加...
-    ];
-
-    // 2. 同时加载所有 JSON，然后合并数据
-    Promise.all(paths.map(loadJSON))
-        .then(allResults => {
-            // 把多个文件的数据合并成一个数组
-            const allData = allResults.flat();
-
-            // 转换格式
-            dogsData = allData.map(dog => ({
-                name: dog["犬种"],
-                lat: dog["经纬度"][0],
-                lon: dog["经纬度"][1],
-                model: `./assets/${dog["犬科"]}/${dog["犬种"]}.glb`,
-                scale: 10,
-                raw: dog
-            }));
-
-            // 初始化 3D
-            init();
-        })
-        .catch(error => {
-            console.error('致命错误:', error);
-            document.getElementById('loading').innerText = "数据加载失败";
-        });
+    Promise.all(paths.map(loadJSON)).then(results => {
+        dogsData = results.flat().map(dog => ({
+            name: dog["犬种"], lat: dog["经纬度"][0], lon: dog["经纬度"][1],
+            model: `./assets/${dog["犬科"]}/${dog["犬种"]}.glb`, scale: 10, raw: dog
+        }));
+        init();
+    }).catch(e => {
+        console.error(e);
+        document.getElementById('loading').innerText = "数据加载失败";
+    });
 
     const continents = [
         {name: "Asia", lat: 35, lon: 100}, {name: "Europe", lat: 50, lon: 15},
@@ -204,7 +93,13 @@
     window.closeCard = () => {
         document.getElementById('info-card').style.transform = 'translateX(100%)';
         controls.autoRotate = true;
-        new TWEEN.Tween(camera.position).to({x: 0, y: 0, z: 600}, 1500).easing(TWEEN.Easing.Exponential.Out).start();
+        new TWEEN.Tween(camera.position).to({z: 600}, 1500).easing(TWEEN.Easing.Exponential.Out).start();
+    };
+
+    const updateModelOrientation = model => {
+        model.lookAt(0, 0, 0);
+        model.rotateX(-Math.PI / 2);
+        model.rotateY(Math.PI);
     };
 
     function init() {
@@ -220,255 +115,108 @@
 
         labelRenderer = new CSS2DRenderer();
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        labelRenderer.domElement.style.position = 'absolute';
-        labelRenderer.domElement.style.top = '0px';
-        labelRenderer.domElement.style.pointerEvents = 'none';
+        labelRenderer.domElement.style.cssText = 'position:absolute;top:0;pointer-events:none;';
         document.body.appendChild(labelRenderer.domElement);
 
         globe = new THREE.Group();
         scene.add(globe);
-
         scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        sunLight.position.set(5, 3, 5);
-        scene.add(sunLight);
+        const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+        sun.position.set(5, 3, 5);
+        scene.add(sun);
 
         const loader = new THREE.TextureLoader();
         const gltfLoader = new GLTFLoader();
 
-        const core = new THREE.Mesh(
-            new THREE.SphereGeometry(150, 64, 64),
-            new THREE.MeshBasicMaterial({color: "#080808"})
-        );
-        globe.add(core);
-
-        // 地球贴图 - 调整为低饱和度工程感
-        loader.load('./assets/earth-topology.png', (texture) => {
-            const mapMat = new THREE.MeshBasicMaterial({
-                map: texture,
-                color: "#3b82f6", // 偏冷色调
-                transparent: true, // 必须
-                blending: THREE.AdditiveBlending,
-                opacity: 1.0
-            });
+        // 地球本体
+        globe.add(new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.MeshBasicMaterial({color: "#080808"})));
+        loader.load('./assets/earth-topology.png', (tex) => {
+            const mapMat = new THREE.MeshBasicMaterial({ map: tex, color: "#3b82f6", transparent: true, blending: THREE.AdditiveBlending });
             globe.add(new THREE.Mesh(new THREE.SphereGeometry(150.5, 64, 64), mapMat));
             document.getElementById('loading').style.opacity = '0';
             setTimeout(() => document.getElementById('loading').remove(), 1000);
         });
 
-        // 栅格网格
-        const gridGeo = new THREE.SphereGeometry(151.5, 40, 40);
-        const edges = new THREE.EdgesGeometry(gridGeo);
-        globe.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
-            color: "#ffffff",
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            opacity: 0.1
-        })));
+        // 栅格线
+        globe.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(151.5, 40, 40)), new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, blending: THREE.AdditiveBlending, opacity: 0.1 })));
 
-        // 1. 密西西比精确初始坐标
-        const SPAWN_LAT = 33.03785;
-        const SPAWN_LON = -89.42493;
-
-        // 统一经度偏移量：Three.js 球坐标 0 弧度在 X 轴，而地图 0 度在 Z 轴，通常差 90 度
-        const LNG_OFFSET = 90 * (Math.PI / 180);
-
-        const spawnPhiBase = (90 - SPAWN_LAT) * (Math.PI / 180);
-        const spawnThetaBase = (SPAWN_LON * (Math.PI / 180)) + LNG_OFFSET;
-
-        // 定义连线材质
-        const lineMaterial = new THREE.LineBasicMaterial({
-            color: "#f6e5df",
-            transparent: true,
-            opacity: 0,
-            blending: THREE.AdditiveBlending
-        });
+        // 飞入动画逻辑
+        const SPAWN_LAT = 33.03785, SPAWN_LON = -89.42493;
+        const spawnPhi = (90 - SPAWN_LAT) * (Math.PI / 180);
+        const spawnTheta = (SPAWN_LON * (Math.PI / 180)) + LNG_OFFSET;
+        const lineMat = new THREE.LineBasicMaterial({ color: "#f6e5df", transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
 
         dogsData.forEach(dog => {
             gltfLoader.load(dog.model, (gltf) => {
-
-                // gltf.scene.traverse(child => {
-                //     if (child.isMesh) {
-                //         const oldMat = child.material;
-                //
-                //         // 检查是否需要转换材质
-                //         if (oldMat.isGLTFSpecularGlossinessMaterial || oldMat.type === 'ShaderMaterial') {
-                //
-                //             // --- 核心修复：确保贴图颜色空间正确 ---
-                //             if (oldMat.map) {
-                //                 // 现代 Three.js 必须指定 SRGBColorSpace，否则会发白
-                //                 oldMat.map.colorSpace = THREE.SRGBColorSpace;
-                //                 // 确保 UV 坐标不会因为优化而偏移
-                //                 oldMat.map.needsUpdate = true;
-                //             }
-                //
-                //             const newMat = new THREE.MeshStandardMaterial({
-                //                 map: oldMat.map,
-                //                 normalMap: oldMat.normalMap,
-                //                 aoMap: oldMat.aoMap,
-                //                 color: oldMat.color,
-                //                 roughness: 0.8,    // 建议调高，降低高光反射引起的发白
-                //                 metalness: 0.0,    // 建议保持 0
-                //                 transparent: oldMat.transparent,
-                //                 opacity: oldMat.opacity,
-                //                 side: THREE.DoubleSide // 确保带姿态的模型内部不会因为背面剔除而变白
-                //             });
-                //
-                //             child.material = newMat;
-                //             oldMat.dispose();
-                //         } else {
-                //             // 如果不需要转换，也建议检查一下现有材质的颜色空间
-                //             if (oldMat.map) {
-                //                 oldMat.map.colorSpace = THREE.SRGBColorSpace;
-                //             }
-                //         }
-                //     }
-                // });
                 const model = gltf.scene;
                 const box = new THREE.Box3().setFromObject(model);
-                const bottomOffset = -box.min.y;
+                const actualR = 150.5 + (-box.min.y * dog.scale);
+
+                const tPhi = (90 - dog.lat) * (Math.PI / 180);
+                const tTheta = (dog.lon * (Math.PI / 180)) + LNG_OFFSET;
+                const endP = new THREE.Vector3().setFromSphericalCoords(actualR, tPhi, tTheta);
+
+                const spread = 4 * (Math.PI / 180);
+                const startP = new THREE.Vector3().setFromSphericalCoords(actualR + 30, spawnPhi + (Math.random() - 0.5) * spread, spawnTheta + (Math.random() - 0.5) * spread);
+
+                const angle = startP.angleTo(endP);
+                const ctrlP = new THREE.Vector3().lerpVectors(startP, endP, 0.5).normalize().multiplyScalar(actualR + 30 + Math.pow(angle, 2) * 60);
+                const curve = new THREE.QuadraticBezierCurve3(startP, ctrlP, endP);
+
+                const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(50)), lineMat.clone());
+                allLines.push(line);
+
                 model.scale.set(dog.scale, dog.scale, dog.scale);
-
-                // --- 终点计算 ---
-                const targetPhi = (90 - dog.lat) * (Math.PI / 180);
-                const targetTheta = (dog.lon * (Math.PI / 180)) + LNG_OFFSET;
-                const actualRadius = 150.5 + (bottomOffset * dog.scale);
-                const endPoint = new THREE.Vector3().setFromSphericalCoords(actualRadius, targetPhi, targetTheta);
-
-                // --- 起点计算 (只应用一次 LNG_OFFSET) ---
-                const spread = 4 * (Math.PI / 180); // 稍微加大散开范围
-                const rSpawnPhi = spawnPhiBase + (Math.random() - 0.5) * spread;
-                const rSpawnTheta = spawnThetaBase + (Math.random() - 0.5) * spread;
-                const startPoint = new THREE.Vector3().setFromSphericalCoords(actualRadius + 30, rSpawnPhi, rSpawnTheta);
-
-                // 3. 计算路径曲线
-                // 3.1. 计算起点与终点的夹角 (弧度)
-                // 这个值在 0 到 PI 之间。飞往澳洲的夹角会接近 PI (180度)。
-                const angle = startPoint.angleTo(endPoint);
-
-                // 3.2. 动态高度算法：
-                // 基础高度 30 + 随着夹角增大而剧增的高度补偿
-                // 飞往附近的狗 (angle小) 拱起高度约 40-60
-                // 飞往澳洲的狗 (angle大) 拱起高度将达到 200-250，足以绕过球面
-                const dynamicArcHeight = 30 + Math.pow(angle, 2) * 60;
-
-                // 3。3. 计算控制点
-                const midPoint = new THREE.Vector3().lerpVectors(startPoint, endPoint, 0.5).normalize();
-                const controlPoint = midPoint.multiplyScalar(actualRadius + dynamicArcHeight);
-
-                // 3.4. 创建曲线
-                const curve = new THREE.QuadraticBezierCurve3(startPoint, controlPoint, endPoint);
-
-                // 初始化线段
-                const lineGeom = new THREE.BufferGeometry().setFromPoints(curve.getPoints(50));
-                const line = new THREE.Line(lineGeom, lineMaterial.clone()); // 使用 clone 以便独立控制透明度
-                line.material.opacity = 0;
-                allLines.push(line); // 存入数组以便后续批量删除
-
-                model.position.copy(startPoint);
+                model.position.copy(startP);
                 updateModelOrientation(model);
 
                 model.userData = {name: dog.name, actions: {}};
                 if (gltf.animations.length > 0) {
                     const mixer = new THREE.AnimationMixer(model);
-                    gltf.animations.forEach(clip => {
-                        model.userData.actions[clip.name] = mixer.clipAction(clip);
-                    });
-                    const first = model.userData.actions[gltf.animations[0].name];
-                    if (first) {
-                        first.play();
-                        mixers.push(mixer);
-                    }
+                    gltf.animations.forEach(c => model.userData.actions[c.name] = mixer.clipAction(c));
+                    model.userData.actions[gltf.animations[0].name]?.play();
+                    mixers.push(mixer);
                 }
 
                 globe.add(model);
                 markers.push(model);
 
-                // --- 动画 ---
-                const syncObj = {t: 0};
-                new TWEEN.Tween(syncObj)
-                    .to({t: 1}, 4000 + Math.random() * 3000)
-                    .delay(1500 + Math.random() * 2000)
-                    .easing(TWEEN.Easing.Quartic.Out)
-                    .onStart(() => {
-                        globe.add(line);
-                        new TWEEN.Tween(line.material).to({opacity: 0.5}, 800).start();
-                    })
-                    .onUpdate(() => {
-                        const currentPos = curve.getPoint(syncObj.t);
-                        model.position.copy(currentPos);
-                        updateModelOrientation(model);
-                    })
+                const sync = {t: 0};
+                new TWEEN.Tween(sync).to({t: 1}, 4000 + Math.random() * 3000).delay(1500 + Math.random() * 2000).easing(TWEEN.Easing.Quartic.Out)
+                    .onStart(() => { globe.add(line); new TWEEN.Tween(line.material).to({opacity: 0.5}, 800).start(); })
+                    .onUpdate(() => { model.position.copy(curve.getPoint(sync.t)); updateModelOrientation(model); })
                     .onComplete(() => {
-                        model.position.copy(endPoint);
-                        updateModelOrientation(model);
+                        model.position.copy(endP); updateModelOrientation(model);
                         new TWEEN.Tween(line.material).to({opacity: 0.1}, 1500).start();
-
-                        // 3. --- 核心计数逻辑 ---
-                        completedCount++;
-
-                        // 检查是否是最后一个到达的
-                        if (completedCount === dogsData.length) {
-                            console.log("所有资产已送达，启动 3s 清理倒计时...");
-
-                            // 延迟 5 秒执行删除
+                        if (++completedCount === dogsData.length) {
                             setTimeout(() => {
-                                allLines.forEach(l => {
-                                    // 执行淡出动画后再从场景移除
-                                    new TWEEN.Tween(l.material)
-                                        .to({opacity: 0}, 2000)
-                                        .onComplete(() => {
-                                            globe.remove(l);
-                                            l.geometry.dispose(); // 释放内存
-                                            l.material.dispose();
-                                        })
-                                        .start();
-                                });
-                                console.log("全网链路已清理。");
-                            }, 3000); // 5000 毫秒间隔
+                                allLines.forEach(l => new TWEEN.Tween(l.material).to({opacity: 0}, 2000).onComplete(() => { globe.remove(l); l.geometry.dispose(); l.material.dispose(); }).start());
+                            }, 3000);
                         }
-                    })
-                    .start();
-
-            }, undefined, (e) => console.error(e));
+                    }).start();
+            });
         });
 
-        // 辅助函数：统一修正模型朝向，使其垂直于球心
-        function updateModelOrientation(model) {
-            model.lookAt(0, 0, 0);
-            model.rotateX(-Math.PI / 2); // 修正 3D 模型预设的 Y 轴朝上
-            model.rotateY(Math.PI);      // 修正模型正反面
-        }
-
-        const atmosphere = new THREE.Mesh(
-            new THREE.SphereGeometry(190, 64, 64),
-            new THREE.ShaderMaterial({
-                transparent: true, side: THREE.BackSide,
-                uniforms: {glowColor: {value: new THREE.Color("#3b82f6")}},
-                vertexShader: `varying vec3 vNormal; void main() { vNormal = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-                fragmentShader: `varying vec3 vNormal; uniform vec3 glowColor; void main() { float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.2)), 6.0); gl_FragColor = vec4(glowColor, intensity); }`
-            })
-        );
-        scene.add(atmosphere);
+        // 大气层与标签
+        scene.add(new THREE.Mesh(new THREE.SphereGeometry(190, 64, 64), new THREE.ShaderMaterial({
+            transparent: true, side: THREE.BackSide, uniforms: {glowColor: {value: new THREE.Color("#3b82f6")}},
+            vertexShader: `varying vec3 vNormal; void main() { vNormal = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+            fragmentShader: `varying vec3 vNormal; uniform vec3 glowColor; void main() { float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.2)), 6.0); gl_FragColor = vec4(glowColor, intensity); }`
+        })));
 
         continents.forEach(cont => {
             const div = document.createElement('div');
-            div.className = 'continent-label';
-            div.textContent = cont.name;
+            div.className = 'continent-label'; div.textContent = cont.name;
             const label = new CSS2DObject(div);
-            const phi = (90 - cont.lat) * (Math.PI / 180);
-            const theta = (cont.lon + 180) * (Math.PI / 180);
+            const phi = (90 - cont.lat) * (Math.PI / 180), theta = (cont.lon + 180) * (Math.PI / 180);
             label.position.set(-155 * Math.sin(phi) * Math.cos(theta), 155 * Math.cos(phi), 155 * Math.sin(phi) * Math.sin(theta));
             globe.add(label);
             labelObjects.push({element: div, object: label});
         });
 
         controls = new OrbitControls(camera, renderer.domElement);
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.5;
-        controls.enableDamping = true;
-        controls.minDistance = 400;
-        controls.maxDistance = 1000;
+        controls.autoRotate = true; controls.autoRotateSpeed = 0.5; controls.enableDamping = true;
+        controls.minDistance = 400; controls.maxDistance = 1000;
 
         window.addEventListener('mousedown', onPointerDown);
         animate();
@@ -478,135 +226,62 @@
         const mouse = new THREE.Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(markers, true);
+        const hits = raycaster.intersectObjects(markers, true);
 
-        if (intersects.length > 0) {
-            let target = intersects[0].object;
+        if (hits.length > 0) {
+            let target = hits[0].object;
             while (target && target.parent && (!target.userData || !target.userData.actions)) target = target.parent;
-
-            if (target && target.userData.actions) {
-                const foundDog = dogsData.find(d => d.name === target.userData.name);
-                if (!foundDog) return;
-                const dog = foundDog.raw;
-
+            if (target?.userData.actions) {
+                const dog = dogsData.find(d => d.name === target.userData.name).raw;
                 document.getElementById('target-name').innerText = dog["犬种"];
                 document.getElementById('target-eng-name').innerText = dog["基础信息"]["英文名"];
-
-                const contentArea = document.getElementById('info-content');
-                contentArea.innerHTML = `
+                document.getElementById('info-content').innerHTML = `
                     <div class="sticky top-0 z-20 bg-[#0a0a0a]/80 backdrop-blur-md pb-4 mb-4 border-b border-white/5">
-        <div class="relative w-full h-48 overflow-hidden rounded-2xl border border-blue-500/20 bg-black group transition-all duration-500 hover:border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-            <model-viewer
-                src="./assets/${dog["犬科"]}/${dog["犬种"]}.glb"
-                alt="3D Specimen"
-                interpolation-decay="100"
-                auto-rotate
-                camera-controls
-                autoplay
-                environment-image="legacy"
-                interaction-prompt="none"
-                shadow-intensity="1"
-                exposure="0.5"
-                class="w-full h-full">
-            </model-viewer>
-
-            <div class="absolute top-2 left-2 px-2 py-0.5 border border-blue-500/30 rounded text-[7px] text-blue-400 font-bold tracking-widest uppercase animate-pulse">
-                ${dog["犬种"]} 3D视角
-            </div>
-        </div>
-    </div>
-        <div class="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
-    </div>
+                        <div class="relative w-full h-48 overflow-hidden rounded-2xl border border-blue-500/20 bg-black group shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                            <model-viewer src="./assets/${dog["犬科"]}/${dog["犬种"]}.glb" auto-rotate camera-controls autoplay shadow-intensity="1" exposure="0.5" class="w-full h-full"></model-viewer>
+                            <div class="absolute top-2 left-2 px-2 py-0.5 border border-blue-500/30 rounded text-[7px] text-blue-400 font-bold uppercase animate-pulse">${dog["犬种"]} 3D视角</div>
+                        </div>
+                    </div>
                     <div class="mb-8">
                         <span class="info-tag">动作指令 / ANIMATION</span>
                         <div class="flex flex-wrap gap-2 mt-3">
-                            ${Object.keys(target.userData.actions).map(act => `<button onclick="event.stopPropagation(); window.switchActionByModel(window.activeModel, '${act}')" class="px-3 py-1.5 border border-white/10 rounded text-[9px] hover:bg-blue-600 transition-all uppercase tracking-widest">${act}</button>`).join('')}
+                            ${Object.keys(target.userData.actions).map(act => `<button onclick="event.stopPropagation(); window.switchActionByModel(window.activeModel, '${act}')" class="px-3 py-1.5 border border-white/10 rounded text-[9px] hover:bg-blue-600 transition-all uppercase">${act}</button>`).join('')}
                         </div>
                     </div>
                     <section class="mb-6">
-    <span class="info-tag">核心参数 / CORE SPEC</span>
-    <div class="grid grid-cols-2 border border-white/10 rounded-lg overflow-hidden bg-white/5">
-        <div class="p-3 border-r border-b border-white/10">
-            <span class="text-[7px] opacity-40 block uppercase tracking-tighter">寿命 / Lifespan</span>
-            <span class="text-[11px] text-blue-200 font-medium">${dog["基础信息"]["寿命"]}</span>
-        </div>
-        <div class="p-3 border-b border-white/10">
-            <span class="text-[7px] opacity-40 block uppercase tracking-tighter">产地 / Origin</span>
-            <span class="text-[11px] text-blue-200 font-medium">${dog["精确产地"]}</span>
-        </div>
-        <div class="p-3 border-r border-white/10">
-            <span class="text-[7px] opacity-40 block uppercase tracking-tighter">肩高 / 体重 Height</span>
-            <span class="text-[11px] text-blue-200 font-medium">${dog["体型外貌"]["肩高"]} / ${dog["体型外貌"]["体重"]}</span>
-        </div>
-        <div class="p-3">
-            <span class="text-[7px] opacity-40 block uppercase tracking-tighter">毛色/ Color</span>
-            <span class="text-[11px] text-blue-200 font-medium">${dog["体型外貌"]["毛色"]}</span>
-        </div>
-    </div>
-
-    <div class="mt-3 px-1">
-        <p class="text-[11px] leading-relaxed text-white/60 italic border-l border-blue-500/30 pl-3">
-            文化历史：${dog["文化历史"]}
-        </p>
-    </div>
-</section>
-
-<section class="mb-6">
-    <span class="info-tag">生存需求 / REQUIREMENTS</span>
-    <div class="space-y-1 bg-white/5 p-3 rounded-lg border border-white/5">
-        <div class="flex justify-between items-center text-[11px] py-1 border-b border-white/5 last:border-0">
-            <span class="opacity-40">🏃 运动需求</span>
-            <span class="text-blue-100">${dog["饲养指南"]["运动需求"]}</span>
-        </div>
-        <div class="flex justify-between items-center text-[11px] py-1 border-b border-white/5 last:border-0">
-            <span class="opacity-40">🧠 训练难度</span>
-            <span class="text-blue-100">${dog["饲养指南"]["训练难度"]}</span>
-        </div>
-        <div class="flex justify-between items-center text-[11px] py-1 border-b border-white/5 last:border-0">
-            <span class="opacity-40">🏠 饲养环境</span>
-            <span class="text-blue-100">${dog["饲养指南"]["饲养环境"]}</span>
-        </div>
-        <div class="flex justify-between items-center text-[11px] py-1">
-            <span class="opacity-40">👨🏻 适合人群</span>
-            <span class="text-blue-100">${dog["饲养指南"]["适合人群"]}</span>
-        </div>
-    </div>
-</section>
-                    <div class="p-5 bg-blue-500/10 rounded-2xl border border-blue-500/20"><span class="info-tag text-blue-400">参考市场价值 / VALUE</span><p class="text-xl font-light text-white mt-1">${dog["参考价格"]}</p></div>
+                        <span class="info-tag">核心参数 / CORE SPEC</span>
+                        <div class="grid grid-cols-2 border border-white/10 rounded-lg overflow-hidden bg-white/5">
+                            <div class="p-3 border-r border-b border-white/10"><span class="text-[7px] opacity-40 block uppercase">寿命 / Lifespan</span><span class="text-[11px] text-blue-200 font-medium">${dog["基础信息"]["寿命"]}</span></div>
+                            <div class="p-3 border-b border-white/10"><span class="text-[7px] opacity-40 block uppercase">产地 / Origin</span><span class="text-[11px] text-blue-200 font-medium">${dog["精确产地"]}</span></div>
+                            <div class="p-3 border-r border-white/10"><span class="text-[7px] opacity-40 block uppercase">肩高 / 体重</span><span class="text-[11px] text-blue-200 font-medium">${dog["体型外貌"]["肩高"]} / ${dog["体型外貌"]["体重"]}</span></div>
+                            <div class="p-3"><span class="text-[7px] opacity-40 block uppercase">毛色/ Color</span><span class="text-[11px] text-blue-200 font-medium">${dog["体型外貌"]["毛色"]}</span></div>
+                        </div>
+                    </section>
+                    <section class="mb-6">
+                        <span class="info-tag">生存需求 / REQUIREMENTS</span>
+                        <div class="space-y-1 bg-white/5 p-3 rounded-lg border border-white/5">
+                            <div class="flex justify-between items-center text-[11px] py-1 border-b border-white/5 last:border-0"><span class="opacity-40">🏃 运动需求</span><span class="text-blue-100">${dog["饲养指南"]["运动需求"]}</span></div>
+                            <div class="flex justify-between items-center text-[11px] py-1 border-b border-white/5 last:border-0"><span class="opacity-40">🧠 训练难度</span><span class="text-blue-100">${dog["饲养指南"]["训练难度"]}</span></div>
+                            <div class="flex justify-between items-center text-[11px] py-1"><span class="opacity-40">👨🏻 适合人群</span><span class="text-blue-100">${dog["饲养指南"]["适合人群"]}</span></div>
+                        </div>
+                    </section>
+                    <div class="p-5 bg-blue-500/10 rounded-2xl border border-blue-500/20"><span class="info-tag">参考价值 / VALUE</span><p class="text-xl font-light text-white mt-1">${dog["参考价格"]}</p></div>
                 `;
 
-                // 在弹出卡片的逻辑中
                 const mv = document.querySelector('model-viewer');
-
                 mv.addEventListener('load', () => {
-                    const model = mv.model;
-
-                    model.materials.forEach((material) => {
-                        // 打印看看，此时它的 baseColorTexture 可能是空的
-                        console.log("正在修复材质:", material.name);
-
-                        // 1. 强制将材质切换到金属/粗糙度工作流 (PBR)
-                        // 注意：model-viewer 的 API 与原生 Three.js 略有不同
-                        const pbr = material.pbrMetallicRoughness;
-
-                        // 2. 如果因为扩展未知导致丢失贴图，
-                        // 你可能需要确保导出模型时使用的是 Standard 材质。
-                        // 但首先尝试降低反射，看纹理是否是被“白光”遮住了：
-                        pbr.setMetallicFactor(0);
-                        pbr.setRoughnessFactor(0.8);
+                    mv.model.materials.forEach(m => {
+                        m.pbrMetallicRoughness.setMetallicFactor(0);
+                        m.pbrMetallicRoughness.setRoughnessFactor(0.8);
                     });
                 });
 
                 window.activeModel = target;
                 document.getElementById('info-card').style.transform = 'translateX(0)';
                 controls.autoRotate = false;
-                const worldPos = new THREE.Vector3();
-                target.getWorldPosition(worldPos);
-                new TWEEN.Tween(camera.position).to({
-                    x: worldPos.x * 2.8,
-                    y: worldPos.y * 2.8,
-                    z: worldPos.z * 2.8
-                }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+                const wPos = new THREE.Vector3();
+                target.getWorldPosition(wPos);
+                new TWEEN.Tween(camera.position).to({ x: wPos.x * 2.8, y: wPos.y * 2.8, z: wPos.z * 2.8 }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
             }
         }
     }
@@ -617,20 +292,15 @@
         const delta = clock.getDelta();
         mixers.forEach(m => m.update(delta));
         controls.update();
-        const cameraPos = camera.position.clone().normalize();
-        labelObjects.forEach(item => {
-            const dot = item.object.position.clone().normalize().dot(cameraPos);
-            item.element.style.opacity = dot > 0.6 ? "1" : "0";
-        });
+        const camNorm = camera.position.clone().normalize();
+        labelObjects.forEach(i => i.element.style.opacity = i.object.position.clone().normalize().dot(camNorm) > 0.6 ? "1" : "0");
         renderer.render(scene, camera);
         labelRenderer.render(scene, camera);
     }
 
     window.onresize = () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight); labelRenderer.setSize(window.innerWidth, window.innerHeight);
     };
 </script>
 </body>
