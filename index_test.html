@@ -6,23 +6,86 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500&family=Inter:wght@300;400;600&display=swap"
+          rel="stylesheet">
     <style>
-        :root { --swiss-red: #ff3e3e; --engineering-blue: #3b82f6; --bg-dark: #0a0a0a; }
-        body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Inter', 'Noto Serif SC', serif; }
-        canvas { display: block; }
-        .glass-sidebar { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(40px) saturate(150%); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: -20px 0 50px rgba(0, 0, 0, 0.9); }
-        #loading { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; background: #000; z-index: 100; transition: opacity 1s; }
-        .continent-label { color: rgba(255, 255, 255, 0.5); font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; padding: 4px 8px; border-left: 1px solid var(--engineering-blue); }
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-        .sidebar-transition { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        .info-tag { color: #3b82f6; font-size: 9px; font-weight: 700; letter-spacing: 0.2em; margin-bottom: 8px; display: block; text-transform: uppercase; border-left: 2px solid #3b82f6; padding-left: 8px; }
+        :root {
+            --swiss-red: #ff3e3e;
+            --engineering-blue: #3b82f6;
+            --bg-dark: #0a0a0a;
+        }
+
+        body {
+            margin: 0;
+            background: #000;
+            color: white;
+            overflow: hidden;
+            font-family: 'Inter', 'Noto Serif SC', serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .glass-sidebar {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(40px) saturate(150%);
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.9);
+        }
+
+        #loading {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            z-index: 100;
+            transition: opacity 1s;
+        }
+
+        .continent-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-left: 1px solid var(--engineering-blue);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+
+        .sidebar-transition {
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .info-tag {
+            color: #3b82f6;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            border-left: 2px solid #3b82f6;
+            padding-left: 8px;
+        }
     </style>
 </head>
 <body>
 
-<div id="loading" class="text-[10px] tracking-[0.8em] text-blue-300 uppercase animate-pulse">正在同步全球犬类遗传地理数据...</div>
+<div id="loading" class="text-[10px] tracking-[0.8em] text-blue-300 uppercase animate-pulse">
+    正在同步全球犬类遗传地理数据...
+</div>
 
 <div class="absolute top-12 left-12 pointer-events-none z-50">
     <span class="text-xs font-mono text-blue-500 font-bold">01</span>
@@ -30,16 +93,39 @@
     <div class="h-[1px] w-12 bg-blue-500/50"></div>
     <h2 class="text-2xl opacity-40 mb-6 uppercase">Universe OF DOGS</h2>
     <div class="h-[4px] w-16 bg-white mb-6"></div>
-    <p class="font-mono text-[9px] tracking-widest opacity-40 max-w-[200px] leading-relaxed">GLOBAL BIOLOGICAL VECTOR ASSET MAPPING SYSTEM v2.6.0</p>
+    <p class="font-mono text-[9px] tracking-widest opacity-40 max-w-[200px] leading-relaxed">GLOBAL BIOLOGICAL VECTOR
+        ASSET MAPPING SYSTEM v2.6.0</p>
 </div>
 
-<div id="info-card" class="glass-sidebar fixed right-0 top-0 bottom-0 w-[420px] p-10 sidebar-transition translate-x-full z-50 flex flex-col">
+<div id="info-card"
+     class="glass-sidebar fixed right-0 top-0 bottom-0 w-[420px] p-10 sidebar-transition translate-x-full z-50 flex flex-col">
     <button onclick="closeCard()" class="absolute top-10 right-10 text-white/20 hover:text-white transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
     </button>
-    <div class="mb-10">
-        <span id="target-eng-name" class="text-[10px] text-blue-500 font-bold tracking-[0.3em] uppercase opacity-60 italic">Specimen Archive</span>
-        <h2 id="target-name" class="text-2xl font-medium mt-2 tracking-tight text-white font-serif inline-block border-b border-white/20">品种名称</h2>
+    <div class="mb-10 group">
+        <div id="family-trigger"
+             class="cursor-pointer inline-flex items-center space-x-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all duration-300 rounded-sm mb-2 group-hover:border-blue-400">
+            <span class="w-2 h-2 bg-blue-500 animate-pulse rounded-full"></span>
+            <span id="target-category"
+                  class="text-[12px] text-blue-400 font-bold tracking-[0.2em] uppercase italic">
+              Loading Family...
+        </span>
+        </div>
+
+        <div class="relative">
+            <h2 id="target-name"
+                class="text-4xl font-light mt-1 tracking-tight text-white font-serif italic relative z-10">
+                品种名称
+            </h2>
+            <div class="absolute -left-2 -top-1 text-[60px] font-serif opacity-[0.03] italic pointer-events-none select-none">
+                SPECIES
+            </div>
+            <div class="w-12 h-[1px] bg-gradient-to-r from-blue-500 to-transparent mt-4"></div>
+        </div>
     </div>
     <div id="info-content" class="flex-1 overflow-y-auto custom-scrollbar pr-4"></div>
     <div class="mt-6 pt-6 border-t border-white/5 flex justify-between items-center opacity-30 text-[8px] tracking-widest uppercase">
@@ -49,9 +135,13 @@
 
 <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
-    import { OrbitControls } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js';
-    import { CSS2DRenderer, CSS2DObject } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/renderers/CSS2DRenderer.js';
-    import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+    import {DRACOLoader} from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/DRACOLoader.js';
+    import {OrbitControls} from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js';
+    import {
+        CSS2DRenderer,
+        CSS2DObject
+    } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/renderers/CSS2DRenderer.js';
+    import {GLTFLoader} from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 
     let scene, camera, renderer, labelRenderer, globe, controls;
     let markers = [], labelObjects = [], mixers = [], allLines = [], dogsData = [];
@@ -60,15 +150,25 @@
     const LNG_OFFSET = 90 * (Math.PI / 180);
 
     const loadJSON = path => fetch(path).then(r => r.ok ? r.json() : Promise.reject(`Error: ${path}`));
-    const paths = ['./assets/牧羊犬和牧牛犬/package.json', './assets/尖嘴犬/package.json'];
+    const paths = [
+        './dist_assets/asia.json',
+        './dist_assets/africa.json',
+        './dist_assets/north_america.json',
+        './dist_assets/south_america.json',
+        './dist_assets/europe.json',
+        './dist_assets/australia.json',
+    ];
 
     Promise.all(paths.map(loadJSON)).then(results => {
         dogsData = results.flat().map(dog => ({
             name: dog["犬种"], lat: dog["经纬度"][0], lon: dog["经纬度"][1],
-            model: `./assets/${dog["犬科"]}/${dog["犬种"]}.glb`, scale: 10, raw: dog
+            model: dog["模型文件"], scale: 10, raw: dog
         }));
         init();
-    }).catch(e => { console.error(e); document.getElementById('loading').innerText = "数据加载失败"; });
+    }).catch(e => {
+        console.error(e);
+        document.getElementById('loading').innerText = "数据加载失败";
+    });
 
     const continents = [
         {name: "Asia", lat: 35, lon: 100}, {name: "Europe", lat: 50, lon: 15},
@@ -104,6 +204,84 @@
         model.rotateY(Math.PI);
     };
 
+    async function visualizeGridAssets() {
+        // 1. 加载你生成的 JSON 数据
+        const response = await fetch('./assets/continent_grid_assets.json');
+        const landMapping = await response.json();
+
+        const gridGroup = new THREE.Group();
+        const STEP = 10; // 必须和你 Python 脚本中的 step 一致
+
+        // 定义大洲对应的颜色
+        const colorMap = {
+            "Asia": 0xff3e3e,
+            "Europe": 0xffffff,
+            "North America": 0x00ff88,
+            "South America": 0xffff00,
+            "Africa": 0xff8800,
+            "Oceania": 0x00ffff,
+            "Unknown": 0x888888
+        };
+
+        // 2. 遍历 JSON 中的每一个大洲和格子
+        Object.keys(landMapping).forEach(continent => {
+            const slots = landMapping[continent];
+            const color = colorMap[continent] || 0xaaaaaa;
+
+            slots.forEach(slot => {
+                const [latMin, latMax, lonMin, lonMax] = slot.boundary;
+
+                // 使用 SphereGeometry 的参数切出精准的方块
+                // 参数含义：半径, 经度分段, 纬度分段, 经度开始, 经度跨度, 纬度开始, 纬度跨度
+                const geo = new THREE.SphereGeometry(
+                    151, // 半径稍大于地球
+                    8, 8,
+                    (lonMin + 180) * Math.PI / 180,  // 经度起始
+                    STEP * Math.PI / 180,            // 经度宽度
+                    (90 - latMax) * Math.PI / 180,   // 纬度起始 (从北极0度向下算)
+                    STEP * Math.PI / 180             // 纬度高度
+                );
+
+                const mat = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+
+                const mesh = new THREE.Mesh(geo, mat);
+
+                // 3. 可选：在中心点放一个小点，验证 center 坐标是否偏移
+                const centerMarkerGeo = new THREE.SphereGeometry(0.5);
+                const centerMarkerMat = new THREE.MeshBasicMaterial({color: color});
+                const marker = new THREE.Mesh(centerMarkerGeo, centerMarkerMat);
+
+                // 简单的经纬度转三维坐标公式
+                const phi = (90 - slot.center[0]) * (Math.PI / 180);
+                const theta = (slot.center[1] + 180) * (Math.PI / 180);
+                marker.position.set(
+                    -152 * Math.sin(phi) * Math.cos(theta),
+                    152 * Math.cos(phi),
+                    152 * Math.sin(phi) * Math.sin(theta)
+                );
+
+                gridGroup.add(mesh);
+                gridGroup.add(marker);
+            });
+        });
+
+        globe.add(gridGroup);
+    }
+
+    // 4. 同时画一个全局辅助栅格（纯白线，10度一格）
+    function createHelperLines() {
+        const helper = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.SphereGeometry(150.5, 36, 18)), // 360/10, 180/10
+            new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.1})
+        );
+        globe.add(helper);
+    }
+
     function init() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
@@ -132,19 +310,46 @@
 
         globe.add(new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.MeshBasicMaterial({color: "#080808"})));
         loader.load('./assets/earth-topology.png', (tex) => {
-            const mapMat = new THREE.MeshBasicMaterial({ map: tex, color: "#3b82f6", transparent: true, blending: THREE.AdditiveBlending });
+            const mapMat = new THREE.MeshBasicMaterial({
+                map: tex,
+                color: "#3b82f6",
+                transparent: true,
+                blending: THREE.AdditiveBlending
+            });
             globe.add(new THREE.Mesh(new THREE.SphereGeometry(150.5, 64, 64), mapMat));
             document.getElementById('loading').style.opacity = '0';
             setTimeout(() => document.getElementById('loading').remove(), 1000);
         });
 
-        globe.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(151.5, 40, 40)), new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, blending: THREE.AdditiveBlending, opacity: 0.1 })));
+        // 建议使用 18 * 36 的分段，这样每格刚好是 10度 (180/18, 360/36)
+        const gridSegmentsLat = 18;
+        const gridSegmentsLon = 36;
+
+        const globeGrid = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.SphereGeometry(151.5, gridSegmentsLon, gridSegmentsLat)),
+            new THREE.LineBasicMaterial({
+                color: "#3b82f6", // 使用工程蓝，看得更清楚
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                opacity: 0.2
+            })
+        );
+        globe.add(globeGrid);
 
         const SPAWN_LAT = 33.03785, SPAWN_LON = -89.42493;
         const spawnPhi = (90 - SPAWN_LAT) * (Math.PI / 180);
         const spawnTheta = (SPAWN_LON * (Math.PI / 180)) + LNG_OFFSET;
-        const lineMat = new THREE.LineBasicMaterial({ color: "#f6e5df", transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+        const lineMat = new THREE.LineBasicMaterial({
+            color: "#f6e5df",
+            transparent: true,
+            opacity: 0,
+            blending: THREE.AdditiveBlending
+        });
 
+        const dracoLoader = new DRACOLoader();
+        // 设置解压库的地址（使用 Google 提供的 CDN）
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+        gltfLoader.setDRACOLoader(dracoLoader); // 这一步至关重要
         dogsData.forEach(dog => {
             gltfLoader.load(dog.model, (gltf) => {
                 const model = gltf.scene;
@@ -179,14 +384,25 @@
 
                 const sync = {t: 0};
                 new TWEEN.Tween(sync).to({t: 1}, 4000 + Math.random() * 3000).delay(1500 + Math.random() * 2000).easing(TWEEN.Easing.Quartic.Out)
-                    .onStart(() => { globe.add(line); new TWEEN.Tween(line.material).to({opacity: 0.5}, 800).start(); })
-                    .onUpdate(() => { model.position.copy(curve.getPoint(sync.t)); updateModelOrientation(model); })
+                    .onStart(() => {
+                        globe.add(line);
+                        new TWEEN.Tween(line.material).to({opacity: 0.5}, 800).start();
+                    })
+                    .onUpdate(() => {
+                        model.position.copy(curve.getPoint(sync.t));
+                        updateModelOrientation(model);
+                    })
                     .onComplete(() => {
-                        model.position.copy(endP); updateModelOrientation(model);
+                        model.position.copy(endP);
+                        updateModelOrientation(model);
                         new TWEEN.Tween(line.material).to({opacity: 0.1}, 1500).start();
                         if (++completedCount === dogsData.length) {
                             setTimeout(() => {
-                                allLines.forEach(l => new TWEEN.Tween(l.material).to({opacity: 0}, 2000).onComplete(() => { globe.remove(l); l.geometry.dispose(); l.material.dispose(); }).start());
+                                allLines.forEach(l => new TWEEN.Tween(l.material).to({opacity: 0}, 2000).onComplete(() => {
+                                    globe.remove(l);
+                                    l.geometry.dispose();
+                                    l.material.dispose();
+                                }).start());
                             }, 3000);
                         }
                     }).start();
@@ -201,7 +417,8 @@
 
         continents.forEach(cont => {
             const div = document.createElement('div');
-            div.className = 'continent-label'; div.textContent = cont.name;
+            div.className = 'continent-label';
+            div.textContent = cont.name;
             const label = new CSS2DObject(div);
             const phi = (90 - cont.lat) * (Math.PI / 180), theta = (cont.lon + 180) * (Math.PI / 180);
             label.position.set(-155 * Math.sin(phi) * Math.cos(theta), 155 * Math.cos(phi), 155 * Math.sin(phi) * Math.sin(theta));
@@ -210,11 +427,27 @@
         });
 
         controls = new OrbitControls(camera, renderer.domElement);
-        controls.autoRotate = true; controls.autoRotateSpeed = 0.5; controls.enableDamping = true;
-        controls.minDistance = 400; controls.maxDistance = 1000;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.enableDamping = true;
+        controls.minDistance = 400;
+        controls.maxDistance = 1000;
 
         window.addEventListener('mousedown', onPointerDown);
+
+        // 4. 调用网格可视化 (因为它内部有 fetch，所以建议用 await)
+        try {
+            createHelperLines(); // 先画白色辅助线
+            visualizeGridAssets(); // 再填充彩色网格数据
+            console.log("网格数据加载并渲染成功");
+        } catch (error) {
+            console.error("加载网格 JSON 失败:", error);
+        }
+
+
         animate();
+
+        // createDebugGrids();
     }
 
     function onPointerDown(e) {
@@ -229,11 +462,11 @@
             if (target?.userData.actions) {
                 const dog = dogsData.find(d => d.name === target.userData.name).raw;
                 document.getElementById('target-name').innerText = dog["犬种"];
-                document.getElementById('target-eng-name').innerText = dog["基础信息"]["英文名"];
+                document.getElementById('target-category').innerText = dog["犬科"];
                 document.getElementById('info-content').innerHTML = `
                     <div class="sticky top-0 z-20 bg-[#0a0a0a]/80 backdrop-blur-md pb-4 mb-4 border-b border-white/5">
                         <div class="relative w-full h-48 overflow-hidden rounded-2xl border border-blue-500/20 bg-black group shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-                            <model-viewer src="./assets/${dog["犬科"]}/${dog["犬种"]}.glb" auto-rotate camera-controls autoplay shadow-intensity="1" exposure="0.5" class="w-full h-full"></model-viewer>
+                            <model-viewer src="${dog["模型文件"]}" auto-rotate camera-controls autoplay shadow-intensity="1" exposure="0.5" class="w-full h-full"></model-viewer>
                             <div class="absolute top-2 left-2 px-2 py-0.5 border border-blue-500/30 rounded text-[7px] text-blue-400 font-bold uppercase animate-pulse">${dog["犬种"]} 3D视角</div>
                         </div>
                     </div>
@@ -276,7 +509,11 @@
                 controls.autoRotate = false;
                 const wPos = new THREE.Vector3();
                 target.getWorldPosition(wPos);
-                new TWEEN.Tween(camera.position).to({ x: wPos.x * 2.8, y: wPos.y * 2.8, z: wPos.z * 2.8 }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+                new TWEEN.Tween(camera.position).to({
+                    x: wPos.x * 2.8,
+                    y: wPos.y * 2.8,
+                    z: wPos.z * 2.8
+                }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
             }
         }
     }
@@ -294,8 +531,10 @@
     }
 
     window.onresize = () => {
-        camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight); labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
     };
 </script>
 </body>
