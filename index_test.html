@@ -134,26 +134,7 @@
     </div>
 </div>
 
-
 <div class="fixed bottom-12 left-12 z-[100] w-[320px]">
-    <div id="ai-reason-bubble"
-         class="absolute bottom-[100%] left-0 mb-4 w-full p-4 bg-blue-600/90 backdrop-blur-md border border-blue-400 text-white rounded-lg opacity-0 translate-y-2 transition-all duration-500 pointer-events-none z-[110]">
-        <div class="flex items-start space-x-3">
-            <div class="bg-white/20 p-1 rounded">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-            </div>
-            <div>
-                <div class="text-[10px] font-bold tracking-widest uppercase opacity-70 mb-1">AI 推荐引擎分析</div>
-                <p id="ai-reason-text" class="text-[11px] leading-relaxed tracking-wide font-medium">
-                    正在分析您的需求...
-                </p>
-            </div>
-        </div>
-        <div class="absolute -bottom-2 left-6 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-blue-600/90"></div>
-    </div>
     <div class="mb-2 flex items-center justify-between opacity-40">
         <span class="text-[9px] tracking-[0.3em] font-mono uppercase text-blue-400">Global Search Protocol</span>
         <span id="search-status" class="text-[9px] font-mono tracking-widest text-white/50">READY</span>
@@ -256,30 +237,6 @@
         model.rotateY(Math.PI);
     };
 
-    function addGridLabel(parentMesh, text, centerCoords) {
-        const div = document.createElement('div');
-        div.className = 'grid-id-label';
-        // 基础样式
-        div.style.color = 'rgba(59, 130, 246, 0.8)';
-        div.style.fontSize = '8px';
-        div.style.fontFamily = 'monospace';
-        div.style.pointerEvents = 'none';
-        div.textContent = text;
-
-        const label = new CSS2DObject(div);
-        const phi = (90 - centerCoords[0]) * (Math.PI / 180);
-        const theta = (centerCoords[1] + 180) * (Math.PI / 180);
-
-        // 略微浮在网格表面 (半径 153)
-        label.position.set(
-            -153 * Math.sin(phi) * Math.cos(theta),
-            153 * Math.cos(phi),
-            153 * Math.sin(phi) * Math.sin(theta)
-        );
-
-        parentMesh.add(label); // 绑定到网格上，随地球转动
-    }
-
     async function visualizeGridAssets() {
         // 1. 加载网格定义数据
         const response = await fetch('./assets/continent_grid_assets.json');
@@ -335,10 +292,6 @@
                     containedCategories: matchedDogs.length > 0 ? matchedDogs[0].category : 'null' // 存储该网格包含的所有犬科名称
                 };
 
-                // 如果该网格有预定狗狗，显示一个小标或 ID
-                // if (matchedDogs.length > 0) {
-                //     addGridLabel(mesh, matchedDogs[0].name, slot.center);
-                // }
 
                 // 3. 可选：在中心点放一个小点，验证 center 坐标是否偏移
                 const centerMarkerGeo = new THREE.SphereGeometry(0.5);
@@ -411,6 +364,41 @@
         globe.add(helper);
     }
 
+    // 定义全局变量
+    let reasonLabel;
+
+    function createReasonLabel() {
+        // 1. 创建 HTML 元素
+        const div = document.createElement('div');
+        div.id = 'ai-reason-bubble';
+        // 使用 Tailwind 样式，初始设为不可见
+        div.className = `
+        absolute pointer-events-none opacity-0 translate-y-4 transition-all duration-700
+        w-[280px] p-4 bg-blue-600/80 backdrop-blur-xl border border-blue-400/50 text-white rounded-lg
+        shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[110]
+    `;
+
+        // 内部结构：包含连线装饰
+        div.innerHTML = `
+        <div class="flex items-start space-x-3">
+            <div class="mt-0.5 opacity-80">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <div>
+                <div class="text-[9px] font-bold tracking-[0.2em] uppercase opacity-60 mb-1">AI 推荐匹配</div>
+                <p id="ai-reason-text" class="text-[11px] leading-relaxed font-medium">匹配中...</p>
+            </div>
+        </div>
+        <div class="absolute -bottom-10 left-0 w-[1px] h-10 bg-gradient-to-t from-blue-400/0 to-blue-400"></div>
+    `;
+
+        // 2. 将其转为 CSS2DObject
+        reasonLabel = new CSS2DObject(div);
+        // 初始位置设在地球中心，之后再更新
+        reasonLabel.position.set(0, 0, 0);
+        scene.add(reasonLabel);
+    }
+
     function init() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
@@ -426,6 +414,11 @@
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.domElement.style.cssText = 'position:absolute;top:0;pointer-events:none;';
         document.body.appendChild(labelRenderer.domElement);
+
+        // 生成推荐原因
+
+
+        createReasonLabel();
 
         globe = new THREE.Group();
         scene.add(globe);
@@ -726,6 +719,14 @@
         const shibaModel = markers.find(m => m.userData.name === "柴犬");
 
         if (shibaData && shibaModel) {
+            // 1. 计算柴犬在球面的 3D 位置
+            const phi = (90 - shibaData.lat) * (Math.PI / 180);
+            const theta = (shibaData.lon * (Math.PI / 180)) + (90 * Math.PI / 180); // 对应 LNG_OFFSET
+
+            // 关键点：将卡片放置在柴犬上方一段距离 (半径 150 + 50)
+            const bubbleRadius = 200;
+            reasonLabel.position.setFromSphericalCoords(bubbleRadius, phi, theta);
+
             // --- 核心改动：重置所有网格，仅锁定高亮目标 ---
             gridMeshes.forEach(mesh => {
                 const isTarget = mesh.userData.gridID === shibaData.raw["网格ID"];
@@ -743,16 +744,24 @@
 
             // F. 执行运镜
             focusOnTarget(shibaData, () => {
-                    // G. 运镜结束，渲染卡片
+                    // A. 运镜结束，渲染卡片
                     window.renderDogCard(shibaData.raw, shibaModel);
 
-                    // D. 核心新增：弹出搜索框上方的“推荐原因”小卡片
-                    window.showAiReason("为您匹配到『柴犬』：其独特的尖嘴犬基因符合您对『狐狸特征』的审美偏好，且具备极高的环境适应性。");
+                    // B. 弹出 3D 空间中的理由卡片
+                    const bubbleEl = document.getElementById('ai-reason-bubble');
+                    document.getElementById('ai-reason-text').innerText =
+                        "匹配到『柴犬』：其独特的尖嘴犬基因符合您对『狐狸特征』的审美偏好，适合城市环境。";
 
+                    // 动画显现
+                    bubbleEl.classList.remove('opacity-0', 'translate-y-4');
+                    bubbleEl.classList.add('opacity-100', 'translate-y-0');
 
-                    // 覆盖类目标签为 AI 推荐样式
-                    // document.getElementById('target-category').innerHTML =
-                    //     `<span class="bg-blue-600 text-black px-1 mr-2 font-bold not-italic">AI 最佳匹配</span> 尖嘴犬`;
+                    // C. 6秒后自动消失
+                    setTimeout(() => {
+                        bubbleEl.classList.add('opacity-0', 'translate-y-4');
+                        bubbleEl.classList.remove('opacity-100', 'translate-y-0');
+                    }, 16000);
+
 
                     status.innerText = "目标已锁定：柴犬 [G_30_130]";
                 }
