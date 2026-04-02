@@ -51,7 +51,7 @@ for continent, slots in land_mapping.items():
 """"
 South America: 共有 14 个可用网格位
 Australia: 共有 7 个可用网格位
-Africa: 共有 25 个可用网格位
+Africa: 共有 25 个可用网格位bei1415
 Asia: 共有 54 个可用网格位
 North America: 共有 36 个可用网格位
 Europe: 共有 15 个可用网格位
