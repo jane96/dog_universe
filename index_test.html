@@ -111,6 +111,7 @@
              class="cursor-pointer inline-flex items-center space-x-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all duration-300 rounded-sm mb-2 group-hover:border-blue-400">
             <span class="w-2 h-2 bg-blue-500 animate-pulse rounded-full"></span>
             <span id="target-category"
+                  onclick="window.highlightSameCategory()"
                   class="text-[12px] text-blue-400 font-bold tracking-[0.2em] uppercase italic">
               Loading Family...
         </span>
@@ -134,6 +135,8 @@
 </div>
 
 <script type="module">
+    // 可以实现的想法：根据提示，找狗
+    // 你适合养什么狗
     import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
     import {DRACOLoader} from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/DRACOLoader.js';
     import {OrbitControls} from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js';
@@ -145,6 +148,7 @@
 
     let scene, camera, renderer, labelRenderer, globe, controls;
     let markers = [], labelObjects = [], mixers = [], allLines = [], dogsData = [];
+    let gridMeshes = [];
     let completedCount = 0;
     const clock = new THREE.Clock();
     const LNG_OFFSET = 90 * (Math.PI / 180);
@@ -162,6 +166,7 @@
     Promise.all(paths.map(loadJSON)).then(results => {
         dogsData = results.flat().map(dog => ({
             name: dog["犬种"], lat: dog["经纬度"][0], lon: dog["经纬度"][1],
+            category: dog["犬科"],
             model: dog["模型文件"], scale: 10, raw: dog
         }));
         init();
@@ -195,6 +200,9 @@
     window.closeCard = () => {
         document.getElementById('info-card').style.transform = 'translateX(100%)';
         controls.autoRotate = true;
+        gridMeshes.forEach(mesh => {
+            new TWEEN.Tween(mesh.material).to({opacity: 0.3, emissiveIntensity: 0}, 500).start();
+        });
         new TWEEN.Tween(camera.position).to({z: 600}, 1500).easing(TWEEN.Easing.Exponential.Out).start();
     };
 
@@ -204,52 +212,89 @@
         model.rotateY(Math.PI);
     };
 
+    function addGridLabel(parentMesh, text, centerCoords) {
+        const div = document.createElement('div');
+        div.className = 'grid-id-label';
+        // 基础样式
+        div.style.color = 'rgba(59, 130, 246, 0.8)';
+        div.style.fontSize = '8px';
+        div.style.fontFamily = 'monospace';
+        div.style.pointerEvents = 'none';
+        div.textContent = text;
+
+        const label = new CSS2DObject(div);
+        const phi = (90 - centerCoords[0]) * (Math.PI / 180);
+        const theta = (centerCoords[1] + 180) * (Math.PI / 180);
+
+        // 略微浮在网格表面 (半径 153)
+        label.position.set(
+            -153 * Math.sin(phi) * Math.cos(theta),
+            153 * Math.cos(phi),
+            153 * Math.sin(phi) * Math.sin(theta)
+        );
+
+        parentMesh.add(label); // 绑定到网格上，随地球转动
+    }
+
     async function visualizeGridAssets() {
-        // 1. 加载你生成的 JSON 数据
+        // 1. 加载网格定义数据
         const response = await fetch('./assets/continent_grid_assets.json');
         const landMapping = await response.json();
 
         const gridGroup = new THREE.Group();
-        const STEP = 10; // 必须和你 Python 脚本中的 step 一致
+        const STEP = 10;
 
-        // 定义大洲对应的颜色
         const colorMap = {
-            "Asia": 0xff3e3e,
-            "Europe": 0xffffff,
-            "North America": 0x00ff88,
-            "South America": 0xffff00,
-            "Africa": 0xff8800,
-            "Oceania": 0x00ffff,
-            "Unknown": 0x888888
+            "Asia": 0x3b82f6, "Europe": 0xffffff, "North America": 0x00ff88,
+            "South America": 0xffff00, "Africa": 0xff8800, "Oceania": 0x00ffff
         };
 
-        // 2. 遍历 JSON 中的每一个大洲和格子
         Object.keys(landMapping).forEach(continent => {
             const slots = landMapping[continent];
             const color = colorMap[continent] || 0xaaaaaa;
 
             slots.forEach(slot => {
                 const [latMin, latMax, lonMin, lonMax] = slot.boundary;
+                const gridID = `G_${latMin}_${lonMin}`;
 
-                // 使用 SphereGeometry 的参数切出精准的方块
-                // 参数含义：半径, 经度分段, 纬度分段, 经度开始, 经度跨度, 纬度开始, 纬度跨度
-                const geo = new THREE.SphereGeometry(
-                    151, // 半径稍大于地球
-                    8, 8,
-                    (lonMin + 180) * Math.PI / 180,  // 经度起始
-                    STEP * Math.PI / 180,            // 经度宽度
-                    (90 - latMax) * Math.PI / 180,   // 纬度起始 (从北极0度向下算)
-                    STEP * Math.PI / 180             // 纬度高度
+                // --- 这里的逻辑变简单了：直接通过坐标范围寻找“住”在这个网格里的狗 ---
+                // 因为 Python 脚本已经把狗的经纬度改成了网格的 center，所以这里一定能 match 到
+                const matchedDogs = dogsData.filter(d =>
+                    d.lat >= latMin && d.lat < latMax &&
+                    d.lon >= lonMin && d.lon < lonMax
                 );
 
-                const mat = new THREE.MeshBasicMaterial({
+                const geo = new THREE.SphereGeometry(
+                    151, 8, 8,
+                    (lonMin + 180) * Math.PI / 180, STEP * Math.PI / 180,
+                    (90 - latMax) * Math.PI / 180, STEP * Math.PI / 180
+                );
+
+                // 基础样式设为极低透明度，仅作为感应区
+                const mat = new THREE.MeshPhongMaterial({
                     color: color,
                     transparent: true,
-                    opacity: 0.3,
-                    side: THREE.DoubleSide
+                    opacity: matchedDogs.length > 0 ? 0.3 : 0.3, // 有狗的网格稍微亮一点点
+                    side: THREE.DoubleSide,
+                    emissive: color,
+                    emissiveIntensity: 0
                 });
 
                 const mesh = new THREE.Mesh(geo, mat);
+
+                // 存储该网格的元数据，方便交互
+                mesh.userData = {
+                    isGrid: true,
+                    gridID: gridID,
+                    center: slot.center,
+                    containedDogs: matchedDogs.length > 0? matchedDogs[0].name: 'null',
+                    containedCategories: matchedDogs.length > 0? matchedDogs[0].category: 'null' // 存储该网格包含的所有犬科名称
+                };
+
+                // 如果该网格有预定狗狗，显示一个小标或 ID
+                // if (matchedDogs.length > 0) {
+                //     addGridLabel(mesh, matchedDogs[0].name, slot.center);
+                // }
 
                 // 3. 可选：在中心点放一个小点，验证 center 坐标是否偏移
                 const centerMarkerGeo = new THREE.SphereGeometry(0.5);
@@ -265,6 +310,7 @@
                     152 * Math.sin(phi) * Math.sin(theta)
                 );
 
+                gridMeshes.push(mesh);
                 gridGroup.add(mesh);
                 gridGroup.add(marker);
             });
@@ -272,6 +318,45 @@
 
         globe.add(gridGroup);
     }
+
+    // 将函数挂载到 window 方便 HTML 调用
+    window.highlightSameCategory = () => {
+        const currentCategory = document.getElementById('target-category').innerText;
+        if (!currentCategory || currentCategory === "Loading Family...") return;
+
+        console.log("正在高亮犬科类目:", currentCategory);
+
+        gridMeshes.forEach(mesh => {
+            // 检查这个网格包含的犬科列表中是否有当前选中的类目
+            const isMatch = mesh.userData.containedCategories === currentCategory;
+            if (isMatch) {
+                // 高亮动效：变为高饱和蓝色并带有自发光
+                new TWEEN.Tween(mesh.material)
+                    .to({opacity: 0.9, emissiveIntensity: 1.5}, 800)
+                    .easing(TWEEN.Easing.Cubic.Out)
+                    .start();
+            } else {
+                // 虚化动效：其他非相关网格几乎消失
+                new TWEEN.Tween(mesh.material)
+                    .to({opacity: 0.02, emissiveIntensity: 0}, 500)
+                    .start();
+            }
+        });
+    };
+
+    window.closeCard = () => {
+        document.getElementById('info-card').style.transform = 'translateX(100%)';
+        controls.autoRotate = true;
+
+        // 重置所有网格到初始状态
+        gridMeshes.forEach(mesh => {
+            new TWEEN.Tween(mesh.material)
+                .to({opacity: 0.15, emissiveIntensity: 0}, 500)
+                .start();
+        });
+
+        new TWEEN.Tween(camera.position).to({z: 600}, 1500).easing(TWEEN.Easing.Exponential.Out).start();
+    };
 
     // 4. 同时画一个全局辅助栅格（纯白线，10度一格）
     function createHelperLines() {
@@ -444,10 +529,8 @@
             console.error("加载网格 JSON 失败:", error);
         }
 
-
         animate();
 
-        // createDebugGrids();
     }
 
     function onPointerDown(e) {
@@ -514,6 +597,11 @@
                     y: wPos.y * 2.8,
                     z: wPos.z * 2.8
                 }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+
+                const gridHits = raycaster.intersectObjects(gridMeshes);
+                if (gridHits.length > 0) {
+                    console.log("当前点击的网格编号是:", gridHits[0].object.userData.center);
+                }
             }
         }
     }
