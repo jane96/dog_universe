@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>犬之岛 - 全球矢量生物资产</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500&family=Inter:wght@300;400;600&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            --swiss-red: #ff3e3e;
+            --engineering-blue: #3b82f6;
+            --bg-dark: #0a0a0a;
+        }
+
+        body {
+            margin: 0;
+            background: #000;
+            color: white;
+            overflow: hidden;
+            font-family: 'Inter', 'Noto Serif SC', serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .glass-sidebar {
+            background: rgba(44, 42, 42, 0.02);
+            backdrop-filter: blur(40px) saturate(150%);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.9);
+        }
+
+        model-viewer {
+            /* 解决部分浏览器缩放导致的边缘模糊 */
+            --poster-color: transparent;
+            background-color: transparent;
+        }
+
+        model-viewer::part(default-canvas) {
+            /* 强制开启硬件加速 */
+            will-change: transform;
+            /* 某些设备下，默认的 filter 会导致模糊，将其关闭 */
+            filter: none !important;
+        }
+
+        #loading {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            z-index: 100;
+            transition: opacity 1s;
+        }
+
+        .continent-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-left: 1px solid var(--engineering-blue);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+
+        .sidebar-transition {
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .info-tag {
+            color: #3b82f6;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            border-left: 2px solid #3b82f6;
+            padding-left: 8px;
+        }
+
+        #hover-info {
+            /* 原则：高透明度 (Alpha < 0.3) 配合背景模糊，模拟烟熏玻璃效果 */
+            background: rgba(10, 10, 15, 0.2);
+            backdrop-filter: blur(8px) saturate(120%);
+            -webkit-backdrop-filter: blur(8px) saturate(120%);
+
+            /* 原则：细线边框减少视觉噪音，仅起到界定范围的作用 */
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-left: 3px solid #3b82f6;
+
+            padding: 12px 16px;
+            border-radius: 2px;
+            color: white;
+            pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+            /* 布局控制 */
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 160px;
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(10px) scale(0.95); /* 初始位置稍微下移并缩小，产生弹出感 */
+        }
+
+        .family-item {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .family-item:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* 增加搜索时的扫描线动画 */
+        @keyframes scanline {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+
+        #scan-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.5), transparent);
+            animation: scanline 2s infinite linear;
+        }
+
+        .hover-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: rgba(59, 130, 246, 0.8);
+        }
+
+        .hover-value {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            /* 使用文本发光代替底色遮挡，提高对比度 */
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .dog-label-highlight {
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            background: rgba(31, 31, 31, 0.3); /* 蓝色半透明背景 */
+            padding: 2px 8px;
+            border-radius: 2px;
+            pointer-events: none; /* 不阻挡鼠标交互 */
+            white-space: nowrap;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading" class="text-[10px] tracking-[0.8em] text-blue-300 uppercase animate-pulse">
+    正在同步全球犬类遗传地理数据...
+</div>
+
+<div class="absolute top-12 left-12 pointer-events-none z-50">
+    <span class="text-xs font-mono text-blue-500 font-bold">01</span>
+    <h1 class="text-6xl tracking-[0.5em] font-light opacity-90 mb-2">犬系宇宙</h1>
+    <div class="h-[1px] w-12 bg-blue-500/50"></div>
+    <h2 class="text-2xl opacity-40 mb-6 uppercase">Universe OF DOGS</h2>
+    <div class="h-[4px] w-16 bg-white mb-6"></div>
+    <p class="font-mono text-[11px] tracking-widest opacity-60 max-w-[200px] leading-relaxed">GLOBAL BIOLOGICAL VECTOR
+        ASSET MAPPING SYSTEM v2.6.0</p>
+</div>
+
+<div id="hover-info" class="fixed opacity-0 z-[120] transition-all duration-200">
+    <span class="hover-label">名字</span>
+    <div id="hover-name" class="hover-value italic">---</div>
+    <div class="w-full h-[1px] bg-blue-500/20 my-1"></div>
+    <span class="hover-label">犬科</span>
+    <div id="hover-origin" class="text-[12px] opacity-90">---</div>
+</div>
+
+<div id="info-card"
+     class="glass-sidebar fixed right-0 top-0 bottom-0 w-[420px] p-14 sidebar-transition translate-x-full z-50 flex flex-col">
+    <div id="family-list-container" class="mt-4 hidden">
+        <h3 class="text-[10px] tracking-[0.3em] opacity-50 uppercase mb-3">该分类下的成员 / Family Members</h3>
+        <div id="family-list" class="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+        </div>
+    </div>
+    <button onclick="closeCard()" class="absolute top-10 right-10 text-white/20 hover:text-white transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+    <div class="mb-10 group">
+        <div id="family-trigger"
+             class="cursor-pointer inline-flex items-center space-x-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all duration-300 rounded-sm mb-2 group-hover:border-blue-400">
+            <span class="w-2 h-2 bg-blue-500 animate-pulse rounded-full"></span>
+            <span id="target-category"
+                  onclick="window.highlightSameCategory()"
+                  class="text-[14px] text-blue-400 font-bold tracking-[0.2em] uppercase italic">
+              Loading Family...
+        </span>
+        </div>
+
+        <div class="relative">
+            <h2 id="target-name"
+                class="text-2xl font-light mt-1 tracking-tight text-white font-serif italic relative z-10">
+                品种名称
+            </h2>
+            <div class="absolute -left-2 -top-1 text-[60px] font-serif opacity-[0.03] italic pointer-events-none select-none">
+                SPECIES
+            </div>
+            <div class="w-12 h-[1px] bg-gradient-to-r from-blue-500 to-transparent mt-4"></div>
+        </div>
+    </div>
+    <div id="info-content" class="flex-1 overflow-y-auto custom-scrollbar pr-4"></div>
+    <div class="mt-6 pt-6 border-t border-white/5 flex justify-between items-center opacity-30 text-[8px] tracking-widest uppercase">
+        <span>Genetic ID: Verified</span><span>© 2026 Canine Global Mapping</span>
+    </div>
+</div>
+
+<div class="fixed left-12 top-1/2 -translate-y-1/2 z-[100] w-[320px] flex flex-col">
+    <div class="mb-2 flex items-center justify-between opacity-80">
+        <span class="text-[14px] tracking-[0.3em] font-mono uppercase text-blue-400">AI推荐饲养宠物</span>
+        <span id="search-status" class="text-[12px] font-mono tracking-widest text-white/50">READY</span>
+    </div>
+
+    <div class="relative group">
+        <div class="absolute -left-1 -top-1 w-2 h-2 border-l border-t border-blue-500/50"></div>
+        <div class="absolute -right-1 -bottom-1 w-2 h-2 border-r border-b border-blue-500/50"></div>
+
+        <input type="text" id="ai-search-input"
+               placeholder="输入需求，如：适合公寓养的..."
+               class="w-full bg-black/40 border border-white/10 p-4 text-[14px] tracking-widest focus:outline-none focus:border-blue-500/50 transition-all backdrop-blur-xl placeholder:opacity-30 text-white">
+
+        <button onclick="executeAISearch()"
+                class="absolute right-2 top-2 bottom-2 px-4 bg-blue-500 text-black text-[10px] font-bold tracking-tighter hover:bg-white transition-all uppercase">
+            发送
+        </button>
+    </div>
+    <button onclick="window.startTour()"
+            class="mt-4 w-full border border-blue-500/30 bg-blue-500/5 py-2 text-[12px] tracking-[0.3em] text-blue-400 hover:bg-blue-500 hover:text-black transition-all uppercase">
+        START CRUISE
+    </button>
+
+    <div class="w-full h-[1px] bg-white/10 mt-4 overflow-hidden">
+        <div id="scan-bar" class="h-full bg-blue-500 w-0 transition-all duration-300"></div>
+    </div>
+
+    <div class="mt-4 opacity-60 text-[10px] tracking-[0.4em] uppercase font-mono">
+        System Active
+    </div>
+</div>
+
+<script type="module">
+    // 可以实现的想法：根据提示，找狗
+    // 你适合养什么狗
+    // 使用 esm.sh 替换 skypack，能更好地处理 Three.js 的依赖关系
+    import * as THREE from 'https://esm.sh/three@0.132.2';
+    import {DRACOLoader} from 'https://esm.sh/three@0.132.2/examples/jsm/loaders/DRACOLoader.js';
+    import {OrbitControls} from 'https://esm.sh/three@0.132.2/examples/jsm/controls/OrbitControls.js';
+    import {CSS2DRenderer, CSS2DObject} from 'https://esm.sh/three@0.132.2/examples/jsm/renderers/CSS2DRenderer.js';
+    import {GLTFLoader} from 'https://esm.sh/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+
+    let scene, camera, renderer, labelRenderer, globe, controls;
+    let markers = [], labelObjects = [], mixers = [], allLines = [], dogsData = [];
+    let gridMeshes = [];
+    let activeHoverMesh = null;
+    // 全局状态记录上一个被划过的网格，用于 TWEEN 优化
+    let lastHoveredGrid = null;
+    // 定义一个数组来追踪当前显示的标签，方便清理
+    let activeLabels = [];
+    let completedCount = 0;
+    const clock = new THREE.Clock();
+    const LNG_OFFSET = 90 * (Math.PI / 180);
+
+    const loadJSON = path => fetch(path).then(r => r.ok ? r.json() : Promise.reject(`Error: ${path}`));
+    const paths = [
+        './gene_dog_info/asia.json',
+        './gene_dog_info/africa.json',
+        './gene_dog_info/north_america.json',
+        './gene_dog_info/south_america.json',
+        './gene_dog_info/europe.json',
+        './gene_dog_info/australia.json',
+    ];
+
+    Promise.all(paths.map(loadJSON)).then(results => {
+        dogsData = results.flat().map(dog => ({
+            name: dog["犬种"], lat: dog["经纬度"][0], lon: dog["经纬度"][1],
+            category: dog["犬科"],
+            model: dog["模型文件"], scale: 25, raw: dog
+        }));
+        init();
+    }).catch(e => {
+        console.error(e);
+        document.getElementById('loading').innerText = "数据加载失败";
+    });
+
+    const continents = [
+        {name: "Asia", lat: 35, lon: 100}, {name: "Europe", lat: 50, lon: 15},
+        {name: "Africa", lat: 5, lon: 20}, {name: "North America", lat: 40, lon: -100},
+        {name: "South America", lat: -15, lon: -60}, {name: "Australia", lat: -25, lon: 135}
+    ];
+
+    window.switchActionByModel = (model, actionName) => {
+        // 1. 更新场景中的模型动作
+        const data = model.userData;
+        const nextAction = data.actions[actionName];
+        if (!nextAction || nextAction === data.currentAction) return;
+        nextAction.reset().setEffectiveWeight(1).fadeIn(0.4).play();
+        if (data.currentAction) data.currentAction.fadeOut(0.4);
+        data.currentAction = nextAction;
+
+        // 2. 同时更新 model-viewer 中的模型动作
+        const mv = document.querySelector('model-viewer');
+        if (mv) {
+            mv.animationName = actionName;
+        }
+    };
+
+    const updateModelOrientation = model => {
+        model.lookAt(0, 0, 0);
+        model.rotateX(-Math.PI / 2);
+        model.rotateY(Math.PI);
+    };
+
+    async function visualizeGridAssets() {
+        // 1. 加载网格定义数据
+        const response = await fetch('./assets/continent_grid_assets.json');
+        const landMapping = await response.json();
+
+        const gridGroup = new THREE.Group();
+        const STEP = 10;
+
+        const colorMap = {
+            "Asia": 0x3b82f6,          // 主色 (Primary)
+            "Europe": 0x60a5fa,        // 稍亮的蓝 (Highlight)
+            "North America": 0x2563eb,  // 深蓝 (Deep)
+            "South America": 0x1d4ed8,  // 暗蓝 (Dark)
+            "Africa": 0x1e3a8a,         // 极深蓝 (Midnight)
+            "Oceania": 0x93c5fd         // 浅蓝 (Cyan-ish Blue)
+        };
+
+        Object.keys(landMapping).forEach(continent => {
+            const slots = landMapping[continent];
+            const color = colorMap[continent] || 0xaaaaaa;
+
+            slots.forEach(slot => {
+                const [latMin, latMax, lonMin, lonMax] = slot.boundary;
+                const gridID = `G_${latMin}_${lonMin}`;
+
+                // --- 这里的逻辑变简单了：直接通过坐标范围寻找“住”在这个网格里的狗 ---
+                // 因为 Python 脚本已经把狗的经纬度改成了网格的 center，所以这里一定能 match 到
+                const matchedDogs = dogsData.filter(d =>
+                    d.lat >= latMin && d.lat < latMax &&
+                    d.lon >= lonMin && d.lon < lonMax
+                );
+
+                const geo = new THREE.SphereGeometry(
+                    151, 8, 8,
+                    (lonMin + 180) * Math.PI / 180, STEP * Math.PI / 180,
+                    (90 - latMax) * Math.PI / 180, STEP * Math.PI / 180
+                );
+
+                // 基础样式设为极低透明度，仅作为感应区
+                const mat = new THREE.MeshPhongMaterial({
+                    color: color,
+                    transparent: true,
+                    depthWrite: false, // 防止网格层之间相互遮挡产生的条纹 (Z-Fighting)
+                    opacity: matchedDogs.length > 0 ? 0.0 : 0.0, // 显著区分有无资产
+                    side: THREE.DoubleSide,
+                    emissive: color,
+                    emissiveIntensity: matchedDogs.length > 0 ? 0.0 : 0 // 静态时只有资产网格微弱发光
+                });
+
+                const mesh = new THREE.Mesh(geo, mat);
+
+                // 存储该网格的元数据，方便交互
+                mesh.userData = {
+                    isGrid: true,
+                    gridID: gridID,
+                    center: slot.center,
+                    containedDogs: matchedDogs.length > 0 ? matchedDogs[0].name : 'null',
+                    containedCategories: matchedDogs.length > 0 ? matchedDogs[0].category : 'null' // 存储该网格包含的所有犬科名称
+                };
+
+
+                // 3. 可选：在中心点放一个小点，验证 center 坐标是否偏移
+                if (matchedDogs.length > 0) {
+                    const centerMarkerGeo = new THREE.SphereGeometry(0.5);
+                    const centerMarkerMat = new THREE.MeshBasicMaterial({color: color});
+                    const marker = new THREE.Mesh(centerMarkerGeo, centerMarkerMat);
+
+                    // 简单的经纬度转三维坐标公式
+                    const phi = (90 - slot.center[0]) * (Math.PI / 180);
+                    const theta = (slot.center[1] + 180) * (Math.PI / 180);
+                    marker.position.set(
+                        -152 * Math.sin(phi) * Math.cos(theta),
+                        152 * Math.cos(phi),
+                        152 * Math.sin(phi) * Math.sin(theta)
+                    );
+                    gridGroup.add(marker);
+                    gridMeshes.push(mesh);
+                    gridGroup.add(mesh);
+                }
+            });
+        });
+
+        globe.add(gridGroup);
+    }
+
+    // 将函数挂载到 window 方便 HTML 调用
+
+    window.highlightSameCategory = () => {
+        const currentCategory = document.getElementById('target-category').innerText;
+        const listContainer = document.getElementById('family-list-container');
+        const listEl = document.getElementById('family-list');
+
+        if (!currentCategory || currentCategory === "Loading Family...") return;
+
+        // 清理之前的状态
+        listEl.innerHTML = '';
+        listContainer.classList.remove('hidden');
+        clearActiveLabels(); // 之前的清理函数
+
+        const matchedMeshes = gridMeshes.filter(mesh => mesh.userData.containedCategories === currentCategory);
+
+        matchedMeshes.forEach(mesh => {
+            // 1. 高亮网格（保持视觉反馈）
+            mesh.userData.isHighlighted = true;
+            new TWEEN.Tween(mesh.material)
+                .to({opacity: 0.6, emissiveIntensity: 0.8}, 600)
+                .start();
+
+            // 2. 生成列表项
+            const dogName = mesh.userData.containedDogs;
+            const item = document.createElement('div');
+            item.className = 'family-item';
+            item.textContent = dogName;
+
+            // 核心交互：点击列表项，定位到地球上的特定点
+            item.onclick = () => {
+                focusOnDog(mesh);
+            };
+
+            listEl.appendChild(item);
+        });
+    };
+
+    // 新增：定位并显示单个标签的函数
+    function focusOnDog(mesh) {
+        clearActiveLabels(); // 只显示当前选中的这一个标签
+
+        // 1. 创建 3D 标签
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'dog-label-highlight'; // 使用你之前的样式
+        labelDiv.textContent = mesh.userData.containedDogs;
+        const labelObj = new CSS2DObject(labelDiv);
+
+        const center = mesh.userData.center;
+        const phi = (90 - center[0]) * (Math.PI / 180);
+        const theta = (center[1] * (Math.PI / 180)) + LNG_OFFSET;
+        labelObj.position.setFromSphericalCoords(170, phi, theta);
+
+        mesh.add(labelObj);
+        activeLabels.push(labelObj);
+
+        // 2. 相机平滑转向该位置（可选，增加动感）
+        const targetPos = new THREE.Vector3().setFromSphericalCoords(450, phi, theta);
+        new TWEEN.Tween(camera.position)
+            .to({x: targetPos.x, y: targetPos.y, z: targetPos.z}, 1000)
+            .easing(TWEEN.Easing.Cubic.InOut)
+            .start();
+    }
+
+    function clearActiveLabels() {
+        activeLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+        });
+        activeLabels = [];
+    }
+
+    window.closeCard = () => {
+        renderer.setPixelRatio(window.devicePixelRatio);
+        if (tourTimer) clearTimeout(tourTimer); // 停止自动转场
+        document.getElementById('info-card').style.transform = 'translateX(100%)';
+        hideAutoHoverInfo(); // 同时隐藏悬停信息
+        controls.autoRotate = true;
+
+        gridMeshes.forEach(mesh => {
+            mesh.userData.isHighlighted = false; // 彻底解锁
+            new TWEEN.Tween(mesh.material)
+                .to({opacity: 0.0, emissiveIntensity: 0}, 500)
+                .start();
+        });
+
+        // 清理标签
+        activeLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+        });
+        activeLabels = [];
+
+        // 相机回退动画
+        new TWEEN.Tween(camera.position).to({z: 600}, 1500).easing(TWEEN.Easing.Exponential.Out).start();
+    };
+
+    // 4. 同时画一个全局辅助栅格（纯白线，10度一格）
+    function createHelperLines() {
+        const helper = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.SphereGeometry(150.5, 36, 18)), // 360/10, 180/10
+            new THREE.LineBasicMaterial({color: "#f3f0f0", transparent: true, opacity: 0.05})
+        );
+        globe.add(helper);
+    }
+
+    // 定义全局变量
+    let reasonLabel;
+
+    function createReasonLabel() {
+        const div = document.createElement('div');
+        div.id = 'ai-reason-bubble';
+        // 初始状态：透明且禁用点击
+        div.className = `absolute opacity-0 translate-y-4 transition-all duration-700 w-[300px] z-[110] text-[16px]`;
+        div.style.pointerEvents = 'none';
+
+        div.innerHTML = `
+        <div class="bg-slate-950/80 backdrop-blur-md border border-blue-500/30 p-4 relative shadow-2xl">
+            <button onclick="window.hideAiReason()" class="absolute top-2 right-2 text-blue-500/50 hover:text-white transition-colors p-1 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+
+            <div class="absolute top-0 left-0 w-1.5 h-1.5 bg-blue-500"></div>
+
+            <div class="flex flex-col space-y-2">
+                <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                    <span class="text-[12px] font-bold tracking-[0.3em] uppercase text-blue-400">AI 推荐原因</span>
+                    <span class="text-[9px] font-mono opacity-30">犬系宇宙</span>
+                </div>
+
+                <div class="flex items-start space-x-3 pt-1">
+                    <div class="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                    <p id="ai-reason-text" class="text-[14px] leading-relaxed font-light tracking-wide text-blue-50/90 italic">
+                        Scanning assets...
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="ml-0 w-[1px] h-12 bg-gradient-to-b from-blue-500/60 to-transparent"></div>
+    `;
+
+        reasonLabel = new CSS2DObject(div);
+        scene.add(reasonLabel);
+    }
+
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const hoverUI = document.getElementById('hover-info');
+
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(450, 150, 150);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        document.body.appendChild(renderer.domElement);
+
+        labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        // 关键：渲染器本身不阻挡点击，子元素通过内部逻辑控制
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0px';
+        labelRenderer.domElement.style.zIndex = '150'; // 必须高于所有其他 UI
+        labelRenderer.domElement.style.pointerEvents = 'none';
+        document.body.appendChild(labelRenderer.domElement);
+
+        // 生成推荐原因
+        createReasonLabel();
+
+        globe = new THREE.Group();
+        scene.add(globe);
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+        sun.position.set(5, 3, 5);
+        scene.add(sun);
+
+        const loader = new THREE.TextureLoader();
+        const gltfLoader = new GLTFLoader();
+
+        scene.add(new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.BackSide,
+            uniforms: {glowColor: {value: new THREE.Color("#050505")}},
+            vertexShader: `varying vec3 vNormal;
+        void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+            fragmentShader: `
+        varying vec3 vNormal;
+    uniform vec3 glowColor;
+    void main() {
+        // 1. 将 0.7 降至 0.4：缩小发光半径，让球体大部分区域变暗
+        // 2. 将 4.0 升至 8.0：让光线急剧收缩到极边缘
+        float intensity = pow(0.7 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
+
+        // 3. 额外保险：乘以一个系数（如 0.8）直接压低整体亮度
+        gl_FragColor = vec4(glowColor, intensity * 0.4);
+        }`
+        })));
+
+        loader.load('./assets/earth-topology.png', (tex) => {
+            const mapMat = new THREE.MeshBasicMaterial({
+                map: tex,
+                color: "#3b82f6",
+                transparent: true,
+                opacity: 1.0,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+            globe.add(new THREE.Mesh(new THREE.SphereGeometry(150.5, 64, 64), mapMat));
+            document.getElementById('loading').style.opacity = '0';
+            setTimeout(() => document.getElementById('loading').remove(), 1000);
+        });
+
+        const dracoLoader = new DRACOLoader();
+        // 设置解压库的地址（使用 Google 提供的 CDN）
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+        gltfLoader.setDRACOLoader(dracoLoader); // 这一步至关重要
+        // 1. 记录已经加载完成的模型数量
+        let loadedCount = 0;
+        const pendingTweens = []; // 存放准备好的动画
+
+        const autoCorrectOrientation = (model) => {
+            // 更新模型的矩阵，确保获取最新的包围盒
+            model.updateMatrixWorld(true);
+            const box = new THREE.Box3().setFromObject(model);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+
+            // 打印一下，方便你在控制台看哪些狗被旋转了
+            // console.log(`${model.userData.dogIdentifier} 尺寸:`, size);
+
+            // 逻辑：如果宽度(X)明显大于深度(Z)，说明它是横着建模的
+            if (size.x > size.z * 1.1) {
+                // 绕 Y 轴转 90 度，把长的一边转到 Z 轴上
+                // 注意：有的模型可能需要 -Math.PI / 2，取决于头在左还是右
+                model.rotateY(Math.PI / 2);
+            }
+        };
+
+        dogsData.forEach((dog, index) => {
+            gltfLoader.load(dog.model, (gltf) => {
+                const model = gltf.scene;
+                model.userData.dogIdentifier = dog.name;
+                model.userData.actions = {};
+
+                autoCorrectOrientation(model);
+
+                // 1. 计算坐标
+                const box = new THREE.Box3().setFromObject(model);
+                const groundR = 150.5 + (-box.min.y * dog.scale);
+                const tPhi = (90 - dog.lat) * (Math.PI / 180);
+                const tTheta = (dog.lon * (Math.PI / 180)) + LNG_OFFSET;
+
+                const endP = new THREE.Vector3().setFromSphericalCoords(groundR, tPhi, tTheta);
+                const skyR = groundR + 30;
+                const startP = new THREE.Vector3().setFromSphericalCoords(skyR, tPhi, tTheta);
+
+                // 初始状态：全部停留在天空
+                model.scale.set(dog.scale, dog.scale, dog.scale);
+                model.position.copy(startP);
+                model.lookAt(0, 0, 0);
+                model.rotateX(-Math.PI / 2);
+                model.rotateY(Math.PI);
+
+                // --- 【修改：初始即生成的科技感连接线】 ---
+                // 使用 BufferGeometry 直接连接 startP 和 endP
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints([startP, endP]);
+                const lineMaterial = new THREE.LineDashedMaterial({
+                    color: 0x3b82f6,
+                    dashSize: 10,          // 调小一点，更有精致感
+                    gapSize: 1,
+                    transparent: true,
+                    opacity: 0.9,         // 初始状态稍隐约一些
+                    depthWrite: false
+                });
+                const connectionLine = new THREE.Line(lineGeometry, lineMaterial);
+                connectionLine.computeLineDistances();
+                globe.add(connectionLine);
+                // ---------------------------------------
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    const mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach((clip) => {
+                        const action = mixer.clipAction(clip);
+                        model.userData.actions[clip.name] = action;
+                    });
+                    const firstActionName = gltf.animations[0].name;
+                    model.userData.actions[firstActionName].play();
+                    model.userData.currentAction = model.userData.actions[firstActionName];
+                    mixers.push(mixer);
+                }
+
+                globe.add(model);
+                markers.push(model);
+
+                // 2. 动画部分：落地时收缩线条
+                const dropTween = new TWEEN.Tween(model.position)
+                    .to({x: endP.x, y: endP.y, z: endP.z}, 500)
+                    .delay(index * 40)
+                    .easing(TWEEN.Easing.Bounce.Out)
+                    .onUpdate(() => {
+                        // 线条起点随模型下落，终点固定在地面
+                        lineGeometry.setFromPoints([model.position, endP]);
+                        connectionLine.computeLineDistances();
+                    })
+                    .onComplete(() => {
+                        updateModelOrientation(model);
+
+                        // 落地后彻底消失
+                        new TWEEN.Tween(lineMaterial)
+                            .to({opacity: 0}, 300)
+                            .onComplete(() => {
+                                globe.remove(connectionLine);
+                                lineGeometry.dispose();
+                                lineMaterial.dispose();
+                            })
+                            .start();
+                    });
+
+                pendingTweens.push(dropTween);
+
+                loadedCount++;
+                if (loadedCount === dogsData.length) {
+                    setTimeout(() => {
+                        document.getElementById('search-status').innerText = "DEPLOYING...";
+                        pendingTweens.forEach(t => t.start());
+                    }, 1000);
+                }
+            });
+        });
+
+        scene.add(new THREE.Mesh(new THREE.SphereGeometry(190, 64, 64), new THREE.ShaderMaterial({
+            transparent: true, side: THREE.BackSide, uniforms: {glowColor: {value: new THREE.Color("#3b82f6")}},
+            vertexShader: `varying vec3 vNormal; void main() { vNormal = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+            fragmentShader: `varying vec3 vNormal; uniform vec3 glowColor; void main() { float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.2)), 6.0); gl_FragColor = vec4(glowColor, intensity); }`
+        })));
+
+        continents.forEach(cont => {
+            const div = document.createElement('div');
+            div.className = 'continent-label';
+            div.textContent = cont.name;
+            const label = new CSS2DObject(div);
+            const phi = (90 - cont.lat) * (Math.PI / 180), theta = (cont.lon + 180) * (Math.PI / 180);
+            label.position.set(-155 * Math.sin(phi) * Math.cos(theta), 155 * Math.cos(phi), 155 * Math.sin(phi) * Math.sin(theta));
+            globe.add(label);
+            labelObjects.push({element: div, object: label});
+        });
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = -4.8;
+        controls.enableDamping = false;
+        controls.minDistance = 300;
+        controls.maxDistance = 600;
+
+        // 当用户开始交互时，停止自动任务
+        controls.addEventListener('start', () => {
+            if (tourTimer) {
+                clearTimeout(tourTimer);
+                console.log("停止巡航：检测到用户交互");
+            }
+            TWEEN.removeAll(); // 停止当前的相机补间动画
+        });
+
+        window.addEventListener('mousedown', onPointerDown);
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // 原则：非干扰式放置 (Non-disruptive Placement)
+            // 将卡片放在鼠标右下方 25px 处，避免遮挡光标下的物体
+            hoverUI.style.left = (event.clientX + 25) + 'px';
+            hoverUI.style.top = (event.clientY + 15) + 'px';
+        });
+
+
+        // 4. 调用网格可视化 (因为它内部有 fetch，所以建议用 await)
+        try {
+            createHelperLines(); // 先画白色辅助线
+            visualizeGridAssets(); // 再填充彩色网格数据
+            console.log("网格数据加载并渲染成功");
+        } catch (error) {
+            console.error("加载网格 JSON 失败:", error);
+        }
+
+        animate();
+
+    }
+
+    // --- 电影级自动转场系统 ---
+
+    // 1. 定义你想展示的顺序 (品种名称需与 JSON 中的“犬种”一致)
+    const TOUR_SEQUENCE = ["柯基", "拉布拉多", "边牧", "阿拉斯加", "中华田园犬"];
+    let tourIndex = 0;
+    let tourTimer = null;
+
+    async function startCinematicTour() {
+        console.log("🎬 开启自动巡检模式...");
+        controls.autoRotate = false; // 关闭自由旋转
+        runTourStep();
+    }
+
+    // A. 显示并填充悬停信息
+    function showAutoHoverInfo(gridMesh) {
+        const hoverUI = document.getElementById('hover-info');
+        document.getElementById('hover-name').innerText = gridMesh.userData.containedDogs;
+        document.getElementById('hover-origin').innerText = `${gridMesh.userData.containedCategories}`;
+
+        hoverUI.style.opacity = '1';
+        hoverUI.style.transform = 'translateY(0) scale(1)';
+    }
+
+    // B. 隐藏悬停信息
+    function hideAutoHoverInfo() {
+        const hoverUI = document.getElementById('hover-info');
+        hoverUI.style.opacity = '0';
+        hoverUI.style.transform = 'translateY(10px) scale(0.95)';
+    }
+
+    // C. 核心：计算 3D 网格在屏幕上的 XY 坐标
+    function updateAutoHoverPosition(gridMesh) {
+        const hoverUI = document.getElementById('hover-info');
+
+        // 获取网格中心点的 3D 坐标
+        const center = gridMesh.userData.center;
+        const phi = (90 - center[0]) * (Math.PI / 180);
+        const theta = (center[1] * (Math.PI / 180)) + LNG_OFFSET;
+        const worldPos = new THREE.Vector3().setFromSphericalCoords(152, phi, theta);
+
+        // 将 3D 坐标投影到屏幕 2D 坐标
+        worldPos.project(camera);
+
+        const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-(worldPos.y * 0.5 - 0.5) * window.innerHeight);
+
+        // 将 UI 定位到该坐标（稍微偏移一点防止遮挡中心）
+        hoverUI.style.left = `${x + 20}px`;
+        hoverUI.style.top = `${y - 40}px`;
+    }
+
+    // --- 增强版自动巡航逻辑 ---
+    async function runTourStep() {
+        if (tourIndex >= TOUR_SEQUENCE.length) {
+            tourIndex = 0; // 循环播放
+        }
+
+        const targetDogName = TOUR_SEQUENCE[tourIndex];
+        const targetGrid = gridMeshes.find(m => m.userData.containedDogs === targetDogName);
+        const targetModel = markers.find(m => m.userData.dogIdentifier === targetDogName);
+
+        if (!targetGrid || !targetModel) {
+            tourIndex++;
+            runTourStep();
+            return;
+        }
+
+        // 1. 模拟网格高亮
+        highlightGrid(targetGrid);
+
+        // 2. 计算相机路径
+        const center = targetGrid.userData.center;
+        const phi = (90 - center[0]) * (Math.PI / 180);
+        const theta = (center[1] * (Math.PI / 180)) + LNG_OFFSET;
+        const targetPos = new THREE.Vector3().setFromSphericalCoords(450, phi, theta);
+
+        // 3. 开始转场动画
+        new TWEEN.Tween(camera.position)
+            .to({x: targetPos.x, y: targetPos.y, z: targetPos.z}, 2000)
+            .easing(TWEEN.Easing.Cubic.InOut)
+            .onUpdate(() => {
+                camera.lookAt(0, 0, 0);
+                // 关键：在转场过程中，实时更新悬停卡片的位置，使其“吸附”在网格上
+                updateAutoHoverPosition(targetGrid);
+            })
+            // .onStart(() => {
+            //     // 显示悬停卡片并注入数据
+            //     showAutoHoverInfo(targetGrid);
+            // })
+            .onComplete(() => {
+                // 4. 到达位置后，弹出侧边详细信息卡片
+                const dogData = dogsData.find(d => d.name === targetDogName);
+                window.renderDogCard(dogData.raw, targetModel);
+                showAutoHoverInfo(targetGrid);
+
+                // 5. 5秒后关闭悬停卡片并进入下一站
+                tourTimer = setTimeout(() => {
+                    hideAutoHoverInfo();
+                    tourIndex++;
+                    runTourStep();
+                }, 5000);
+            })
+            .start();
+    }
+
+    // 辅助函数：让网格亮起
+    function highlightGrid(mesh) {
+        // 先重置所有网格
+        gridMeshes.forEach(m => {
+            new TWEEN.Tween(m.material).to({opacity: 0, emissiveIntensity: 0}, 500).start();
+        });
+
+        // 高亮目标
+        new TWEEN.Tween(mesh.material)
+            .to({opacity: 0.8, emissiveIntensity: 2.0}, 1000)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start();
+    }
+
+    // 暴露给 window，方便在控制台或按钮触发
+    window.startTour = startCinematicTour;
+
+    // ==========================================
+    // 1. 统一渲染函数：负责更新侧边栏 UI
+    // ==========================================
+    window.renderDogCard = (dogRaw, targetModel) => {
+        renderer.setPixelRatio(1);
+        // 设置当前活跃模型，确保动作切换按钮可用
+        window.activeModel = targetModel;
+
+        // 更新标题和类目
+        document.getElementById('target-name').innerText = dogRaw["犬种"];
+        document.getElementById('target-category').innerText = dogRaw["犬科"];
+
+        // 动态生成内容
+        const actions = targetModel.userData.actions;
+        document.getElementById('info-content').innerHTML = `
+        <div class="sticky top-0 z-20 bg-[#0a0a0a]/80 backdrop-blur-md pb-4 mb-4 border-b border-white/5">
+            <div class="relative w-full h-48 overflow-hidden rounded-2xl border border-blue-500/20 bg-black group shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                <model-viewer src="${dogRaw["模型文件"]}" auto-rotate camera-controls autoplay min-dpr="2" dpr="2" shadow-intensity="1" min-pixel-ratio="2" interpolation-decay="0" environment-image="neutral" powerPreference="high-performance"  exposure="1.0" class="w-full h-full"></model-viewer>
+                <div class="absolute top-2 left-2 px-2 py-0.5 border border-blue-500/30 rounded text-[14px] text-blue-400 font-bold uppercase animate-pulse">
+                    ${dogRaw["犬种"]} 3D 资产预览
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <span class="info-tag">动作指令 / ANIMATION</span>
+            <div class="flex flex-wrap gap-2 mt-3">
+                ${Object.keys(actions).map(act => `
+                    <button onclick="event.stopPropagation(); window.switchActionByModel(window.activeModel, '${act}')"
+                            class="px-3 py-1.5 border border-white/10 rounded text-[10px] hover:bg-blue-600 transition-all uppercase">
+                        ${act}
+                    </button>`).join('')}
+            </div>
+        </div>
+
+        <section class="mb-6">
+            <span class="info-tag">核心参数 / CORE SPEC</span>
+            <div class="grid grid-cols-2 border border-white/10 rounded-lg overflow-hidden bg-white/5 text-[14px]">
+                <div class="p-3 border-r border-b border-white/10"><span class="opacity-80 block">寿命</span><span class="text-blue-200">${dogRaw["基础信息"]["寿命"]}</span></div>
+                <div class="p-3 border-b border-white/10"><span class="opacity-80 block">产地</span><span class="text-blue-200">${dogRaw["精确产地"]}</span></div>
+                <div class="p-3 border-r border-white/10"><span class="opacity-80 block">高度/体重</span><span class="text-blue-200">${dogRaw["体型外貌"]["肩高"]} / ${dogRaw["体型外貌"]["体重"]}</span></div>
+                <div class="p-3"><span class="opacity-40 block">毛色</span><span class="text-blue-200">${dogRaw["体型外貌"]["毛色"]}</span></div>
+            </div>
+        </section>
+
+        <section class="mb-6">
+            <span class="info-tag">生存需求 / REQUIREMENTS</span>
+            <div class="space-y-1 bg-white/2 p-3 rounded-lg border border-white/5 text-[14px]">
+                <div class="flex justify-between py-1 border-b border-white/5 last:border-0"><span class="opacity-70">🏃 运动需求</span><span>${dogRaw["饲养指南"]["运动需求"]}</span></div>
+                <div class="flex justify-between py-1 border-b border-white/5 last:border-0"><span class="opacity-70">🧠 训练难度</span><span>${dogRaw["饲养指南"]["训练难度"]}</span></div>
+                <div class="flex justify-between py-1"><span class="opacity-70">👨🏻 适合人群</span><span>${dogRaw["饲养指南"]["适合人群"]}</span></div>
+            </div>
+        </section>
+
+        <div class="p-5 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+            <span class="info-tag">参考价值 / VALUE</span>
+            <p class="text-xl font-light text-white mt-1">${dogRaw["参考价格"]}</p>
+        </div>
+    `;
+
+        // 显示卡片
+        document.getElementById('info-card').style.transform = 'translateX(0)';
+        // 针对所有的 model-viewer 实例强制提升质量
+
+        const mv = document.querySelector('model-viewer');
+        if (mv) {
+            // 1. 强制固定 DPR，防止自动降级
+            mv.setAttribute('dpr', window.devicePixelRatio || 2);
+            mv.setAttribute('min-dpr', '2');
+
+            // 2. 禁用性能自适应
+            mv.setAttribute('power-preference', 'high-performance');
+
+            // 3. 提高渲染分辨率
+            mv.setAttribute('render-scale', '1');
+
+            // 4. 强制重绘
+            mv.dispatchEvent(new CustomEvent('reload'));
+
+            // 5. 监听加载完成后再次确认质量
+            mv.addEventListener('load', () => {
+                mv.dpr = window.devicePixelRatio || 2;
+                mv.minDpr = 2;
+                // 强制刷新
+                mv.style.transform = 'translateZ(0)';
+            });
+        }
+    };
+
+    // ==========================================
+    // 2. 运镜函数：纯粹的相机移动
+    // ==========================================
+    function focusOnTarget(dogData, onCompleteCallback) {
+        // 1. 计算目标球坐标
+        const targetPhi = (90 - dogData.lat) * (Math.PI / 180);
+        // 目标经度（弧度）
+        let targetTheta = (dogData.lon * (Math.PI / 180)) + (90 * (Math.PI / 180));
+        const distance = 520;
+
+        // 2. 获取当前相机的球坐标
+        const currentSpherical = new THREE.Spherical().setFromVector3(camera.position);
+        let currentTheta = currentSpherical.theta;
+
+        // --- 【关键修复：最短路径逻辑】 ---
+        // 确保 targetTheta 与 currentTheta 的差值在 -PI 到 PI 之间
+        while (targetTheta - currentTheta > Math.PI) targetTheta -= 2 * Math.PI;
+        while (targetTheta - currentTheta < -Math.PI) targetTheta += 2 * Math.PI;
+
+        // 3. 使用 TWEEN 对球坐标进行插值，而不是直接对 Vector3 插值
+        // 这样相机就会沿着球面弧线滑动，而不是穿过地球内部
+        const animObj = {
+            phi: currentSpherical.phi,
+            theta: currentTheta,
+            radius: currentSpherical.radius
+        };
+
+        controls.autoRotate = false;
+
+        new TWEEN.Tween(animObj)
+            .to({phi: targetPhi, theta: targetTheta, radius: distance}, 1000)
+            .easing(TWEEN.Easing.Exponential.InOut)
+            .onUpdate(() => {
+                // 将插值后的球坐标转回相机位置
+                camera.position.setFromSphericalCoords(animObj.radius, animObj.phi, animObj.theta);
+                camera.lookAt(0, 0, 0);
+            })
+            .onComplete(() => {
+                if (onCompleteCallback) onCompleteCallback();
+            })
+            .start();
+    }
+
+    // 1. 定义全局计时器
+    let reasonTimeout = null;
+
+    // 2. 隐藏函数：挂载到 window 确保 HTML 中的 onclick 能触发
+    window.hideAiReason = function () {
+        const bubble = document.getElementById('ai-reason-bubble');
+        if (bubble) {
+            // 视觉隐藏：触发 CSS 过渡
+            bubble.classList.add('opacity-0', 'translate-y-4');
+            bubble.classList.remove('opacity-100', 'translate-y-0');
+            // 彻底禁用交互，防止隐形遮挡点击地球
+            bubble.style.pointerEvents = 'none';
+        }
+        // 清除可能存在的倒计时
+        if (reasonTimeout) {
+            clearTimeout(reasonTimeout);
+            reasonTimeout = null;
+        }
+    };
+
+    // 3. 显示函数：包含自动消失逻辑
+    window.showAiReason = function (text) {
+        const bubble = document.getElementById('ai-reason-bubble');
+        const textElement = document.getElementById('ai-reason-text');
+
+        // --- 解决你的报错：非空保护 ---
+        if (!bubble || !textElement) {
+            console.error("错误：找不到推荐原因卡片元素。请检查 createReasonLabel 是否已执行。");
+            return;
+        }
+
+        // 如果之前有一个正在倒计时的任务，先取消它
+        if (reasonTimeout) clearTimeout(reasonTimeout);
+
+        // 更新文字并显示
+        textElement.innerText = text;
+        bubble.classList.remove('opacity-0', 'translate-y-4');
+        bubble.classList.add('opacity-100', 'translate-y-0');
+        bubble.style.pointerEvents = 'auto'; // 允许点击关闭按钮
+
+        // --- 自动消失逻辑 ---
+        // 计算规则：基础 4秒 + 每 10 个字加 1 秒 (CS448B 阅读速率原则)
+        const displayTime = 40000 + (text.length * 100);
+
+        console.log(`卡片将保持显示 ${displayTime / 1000} 秒`);
+
+        reasonTimeout = setTimeout(() => {
+            window.hideAiReason();
+        }, displayTime);
+    };
+
+    // ==========================================
+    // 3. AI 全局检索逻辑：包含视觉锁定效果
+    // ==========================================
+    window.executeAISearch = async function () {
+        const input = document.getElementById('ai-search-input');
+        const status = document.getElementById('search-status');
+        const scanBar = document.getElementById('scan-bar');
+
+        if (!input.value.trim()) return;
+
+        // A. 开启 UI 扫描
+        input.disabled = true;
+        status.innerText = "正在进行全局遗传资产检索...";
+        status.classList.add("text-blue-500", "animate-pulse");
+        scanBar.style.width = "100%";
+
+        const originalSpeed = controls.autoRotateSpeed;
+        controls.autoRotate = true;
+        new TWEEN.Tween(controls)
+            .to({autoRotateSpeed: 20}, 1000) // 2秒内加速到 20 (极快)
+            .easing(TWEEN.Easing.Quadratic.In)
+            .start();
+
+        // B. 震撼视觉：网格杂乱闪烁
+        const flashInterval = setInterval(() => {
+            gridMeshes.forEach(mesh => {
+                if (Math.random() > 0.8) {
+                    mesh.material.emissiveIntensity = 2;
+                    mesh.material.opacity = 0.5;
+                } else {
+                    mesh.material.emissiveIntensity = 0;
+                    mesh.material.opacity = 0.05;
+                }
+            });
+        }, 100);
+
+        // C. 模拟 AI 计算时间
+        await new Promise(resolve => setTimeout(resolve, 3500));
+
+        // D. 停止闪烁
+        clearInterval(flashInterval);
+        controls.autoRotateSpeed = -0.8; // 恢复原始速度
+
+        // 关键：强制让所有网格熄灭，防止闪烁残留在表面
+        gridMeshes.forEach(mesh => {
+            mesh.material.emissiveIntensity = 0;
+            mesh.material.opacity = 0.15; // 回归初始微弱可见状态
+        });
+
+        // E. 锁定柴犬数据和模型
+        const searchTerm = "柴犬";
+        const shibaData = dogsData.find(d => d.name === searchTerm);
+        const shibaModel = markers.find(m => m.userData.dogIdentifier === searchTerm);
+
+        if (shibaData && shibaModel) {
+            console.log("锁定目标模型:", shibaModel);
+
+            // 2. 【核心修改】：计算气泡的“向上+向左”偏移坐标
+            // 向上移动：将纬度从 30 增加到 45（数值越大越靠北/上）
+            const bubbleLat = shibaData.lat + 3;
+            // 向左移动：在经度上减去约 10-15 度（弧度制约为 0.2）
+            const bubbleLonOffset = 0;
+
+            const bubblePhi = (90 - bubbleLat) * (Math.PI / 180);
+            const bubbleTheta = (shibaData.lon * (Math.PI / 180)) + LNG_OFFSET - bubbleLonOffset;
+
+            // 3. 设置气泡位置，半径依然保持稍高（260），产生悬浮感
+            reasonLabel.position.setFromSphericalCoords(260, bubblePhi, bubbleTheta);
+
+            // 执行运镜
+            focusOnTarget(shibaData, () => {
+                console.log("运镜完成，准备弹出卡片...");
+
+                // 1. 渲染侧边栏卡片
+                // 确保传入的是 shibaModel 而不是 undefined
+                window.renderDogCard(shibaData.raw, shibaModel);
+
+                // 2. 弹出 3D 理由气泡
+                const text = "匹配到『柴犬』：\n" +
+                    "独立、不爱叫、爱干净、体型适中；\n" +
+                    "长得还治愈，不过有点倔哦。";
+                showAiReason(text);
+
+                // 3. 联动高亮网格
+                const targetGridID = shibaData.raw["网格ID"];
+                gridMeshes.forEach(mesh => {
+                    if (mesh.userData.gridID === targetGridID) {
+                        // 目标网格：强力点亮
+                        new TWEEN.Tween(mesh.material)
+                            .to({opacity: 1.0, emissiveIntensity: 4.0}, 600)
+                            .easing(TWEEN.Easing.Quadratic.Out)
+                            .start();
+                    } else {
+                        // 非目标网格：进一步虚化，突出重点
+                        new TWEEN.Tween(mesh.material)
+                            .to({opacity: 0.05, emissiveIntensity: 0}, 500)
+                            .start();
+                    }
+                });
+
+                status.innerText = `目标锁定：${searchTerm}`;
+                status.classList.remove("animate-pulse");
+            });
+        } else {
+            console.error("搜索失败：找不到名为 " + searchTerm + " 的模型或数据");
+            status.innerText = "ERROR: ASSET NOT FOUND";
+        }
+
+        // F. 执行运镜
+        // --- 修改 focusOnTarget 函数 ---
+        function focusOnTarget(dogData, onCompleteCallback) {
+            const phi = (90 - dogData.lat) * (Math.PI / 180);
+            // 使用全局的 LNG_OFFSET 确保位置绝对精准
+            const theta = (dogData.lon * (Math.PI / 180)) + LNG_OFFSET;
+            const distance = 450; // 稍微近一点，视觉冲击力更强
+            const targetPos = new THREE.Vector3().setFromSphericalCoords(distance, phi, theta);
+
+            controls.autoRotate = false;
+
+            new TWEEN.Tween(camera.position)
+                .to({x: targetPos.x, y: targetPos.y, z: targetPos.z}, 1500) // 增加到1.5秒，平滑运镜
+                .easing(TWEEN.Easing.Cubic.InOut) // 使用更优雅的曲线
+                .onUpdate(() => camera.lookAt(0, 0, 0))
+                .onComplete(() => {
+                    if (onCompleteCallback) onCompleteCallback();
+                })
+                .start();
+        };
+
+
+        // H. 恢复 UI
+        setTimeout(() => {
+            scanBar.style.width = "0%";
+            input.disabled = false;
+            input.value = "";
+            status.classList.remove("animate-pulse");
+            status.innerText = "系统就绪";
+        }, 4000);
+    };
+
+
+    function onPointerDown(event) {
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+
+        // 【调试】在场景中画出这条射线（按 F12 看控制台）
+        const intersects = raycaster.intersectObjects(globe.children, true);
+
+        if (intersects.length > 0) {
+            let hitObject = intersects[0].object;
+            let foundContainer = null;
+            let current = hitObject;
+
+
+            while (current) {
+                // 关键：寻找我们自定义的业务标记，而不是通用的 .name
+                if (current.userData && current.userData.dogIdentifier) {
+                    foundContainer = current;
+                    break;
+                }
+                current = current.parent;
+            }
+
+            if (foundContainer) {
+                const realDogName = foundContainer.userData.dogIdentifier;
+
+                const dogData = dogsData.find(d => d.name === realDogName);
+                if (dogData) {
+                    focusOnTarget(dogData, () => {
+                        window.renderDogCard(dogData.raw, foundContainer);
+                    });
+                }
+            }
+        }
+    }
+
+    // 辅助函数：统一清理悬停效果
+    function hideHoverEffects() {
+        if (lastHoveredGrid) {
+            // 关键逻辑：如果这个网格被“类目高亮”锁定了，鼠标离开时让它回到高亮准态
+            if (lastHoveredGrid.userData.isHighlighted) {
+                new TWEEN.Tween(lastHoveredGrid.material)
+                    .to({opacity: 0.9, emissiveIntensity: 1.5}, 300)
+                    .start();
+            } else {
+                // 如果没被锁定，才彻底变回透明/暗淡
+                new TWEEN.Tween(lastHoveredGrid.material)
+                    .to({opacity: 0.0, emissiveIntensity: 0}, 400)
+                    .start();
+            }
+            lastHoveredGrid = null;
+        }
+        // 隐藏 UI 气泡
+        hoverUI.style.opacity = '0';
+    }
+
+    // 定义一个局部 Y 轴向量，用于自转参考
+    // 在循环外定义一个局部向上向量，避免重复创建对象提升性能
+    const LOCAL_UP = new THREE.Vector3(0, 1, 0);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+
+        // 1. 更新骨骼动画（跑、跳、待机）
+        mixers.forEach(m => m.update(delta));
+
+        // 2. 更新补间动画（相机平滑移动、UI 渐变）
+        TWEEN.update();
+
+        // 3. 更新控制器（处理地球自转）
+        controls.update();
+
+        // --- 【新增：狗狗原地自转逻辑】 ---
+        markers.forEach(model => {
+            // 只有当这只狗不是当前侧边栏展示的“主角”时，才进行自转
+            // 这样可以方便用户在侧边栏观察静止的模型
+            if (window.activeModel !== model) {
+                // 参数 0.8 是转速，可根据喜好调整（数值越大转得越快）
+                model.rotateOnAxis(LOCAL_UP, 0.4 * delta);
+            }
+        });
+        // --------------------------------
+
+        // 4. 射线检测（保持你原有的逻辑）
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(gridMeshes);
+
+        if (intersects.length > 0) {
+            const currentGrid = intersects[0].object;
+            if (lastHoveredGrid !== currentGrid) {
+                hideHoverEffects();
+                lastHoveredGrid = currentGrid;
+                new TWEEN.Tween(currentGrid.material)
+                    .to({opacity: 1.0, emissiveIntensity: 2.0}, 200)
+                    .start();
+
+                if (currentGrid.userData.containedDogs !== 'null') {
+                    hoverUI.style.opacity = '1';
+                    hoverUI.style.transform = 'translateY(0) scale(1)';
+                    document.getElementById('hover-name').innerText = currentGrid.userData.containedDogs;
+                    document.getElementById('hover-origin').innerText = currentGrid.userData.containedCategories;
+                }
+            }
+        } else {
+            hideHoverEffects();
+        }
+
+        // 5. 双重渲染（3D 场景 + 2D 标签）
+        renderer.render(scene, camera);
+        labelRenderer.render(scene, camera);
+    }
+
+
+    // --- 辅助函数：平滑重置网格状态 ---
+    function resetGridEffect(mesh) {
+        if (!mesh || !mesh.material) return;
+
+        // 关键：停止该材质上所有正在运行的动画，防止拉扯
+        TWEEN.getAll().forEach(t => {
+            if (t._object === mesh.material) t.stop();
+        });
+
+        new TWEEN.Tween(mesh.material)
+            .to({
+                emissiveIntensity: 0,
+                opacity: 0.05 // 恢复到你初始化的透明度
+            }, 400)
+            .easing(TWEEN.Easing.Cubic.Out)
+            .start();
+    }
+
+    // --- 辅助函数：隐藏悬停 UI ---
+    function hideHoverUI() {
+        hoverUI.style.opacity = '0';
+        hoverUI.style.transform = 'translateY(10px)'; // 消失时带一点向下的位移
+    }
+
+    window.onresize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    };
+
+</script>
+</body>
+</html>

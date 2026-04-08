@@ -28,10 +28,23 @@
         }
 
         .glass-sidebar {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(44, 42, 42, 0.02);
             backdrop-filter: blur(40px) saturate(150%);
-            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.15);
             box-shadow: -20px 0 50px rgba(0, 0, 0, 0.9);
+        }
+
+        model-viewer {
+            /* 解决部分浏览器缩放导致的边缘模糊 */
+            --poster-color: transparent;
+            background-color: transparent;
+        }
+
+        model-viewer::part(default-canvas) {
+            /* 强制开启硬件加速 */
+            will-change: transform;
+            /* 某些设备下，默认的 filter 会导致模糊，将其关闭 */
+            filter: none !important;
         }
 
         #loading {
@@ -70,7 +83,7 @@
 
         .info-tag {
             color: #3b82f6;
-            font-size: 9px;
+            font-size: 14px;
             font-weight: 700;
             letter-spacing: 0.2em;
             margin-bottom: 8px;
@@ -101,6 +114,8 @@
             flex-direction: column;
             gap: 4px;
             min-width: 160px;
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(10px) scale(0.95); /* 初始位置稍微下移并缩小，产生弹出感 */
         }
 
         /* 增加搜索时的扫描线动画 */
@@ -126,7 +141,7 @@
 
         .hover-label {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 8px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.2em;
             color: rgba(59, 130, 246, 0.8);
@@ -134,7 +149,7 @@
 
         .hover-value {
             font-size: 14px;
-            font-weight: 300;
+            font-weight: 700;
             letter-spacing: 0.05em;
             /* 使用文本发光代替底色遮挡，提高对比度 */
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
@@ -153,20 +168,20 @@
     <div class="h-[1px] w-12 bg-blue-500/50"></div>
     <h2 class="text-2xl opacity-40 mb-6 uppercase">Universe OF DOGS</h2>
     <div class="h-[4px] w-16 bg-white mb-6"></div>
-    <p class="font-mono text-[9px] tracking-widest opacity-40 max-w-[200px] leading-relaxed">GLOBAL BIOLOGICAL VECTOR
+    <p class="font-mono text-[11px] tracking-widest opacity-60 max-w-[200px] leading-relaxed">GLOBAL BIOLOGICAL VECTOR
         ASSET MAPPING SYSTEM v2.6.0</p>
 </div>
 
 <div id="hover-info" class="fixed opacity-0 z-[120] transition-all duration-200">
-    <span class="hover-label">Biological ID</span>
+    <span class="hover-label">名字</span>
     <div id="hover-name" class="hover-value italic">---</div>
     <div class="w-full h-[1px] bg-blue-500/20 my-1"></div>
-    <span class="hover-label">Origin Locale</span>
-    <div id="hover-origin" class="text-[10px] opacity-70">---</div>
+    <span class="hover-label">犬科</span>
+    <div id="hover-origin" class="text-[12px] opacity-90">---</div>
 </div>
 
 <div id="info-card"
-     class="glass-sidebar fixed right-0 top-0 bottom-0 w-[420px] p-10 sidebar-transition translate-x-full z-50 flex flex-col">
+     class="glass-sidebar fixed right-0 top-0 bottom-0 w-[420px] p-14 sidebar-transition translate-x-full z-50 flex flex-col">
     <button onclick="closeCard()" class="absolute top-10 right-10 text-white/20 hover:text-white transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="1.5">
@@ -204,8 +219,8 @@
 
 <div class="fixed left-12 top-1/2 -translate-y-1/2 z-[100] w-[320px] flex flex-col">
     <div class="mb-2 flex items-center justify-between opacity-80">
-        <span class="text-[12px] tracking-[0.3em] font-mono uppercase text-blue-400">AI推荐饲养宠物</span>
-        <span id="search-status" class="text-[9px] font-mono tracking-widest text-white/50">READY</span>
+        <span class="text-[16px] tracking-[0.3em] font-mono uppercase text-blue-400">AI推荐饲养宠物</span>
+        <span id="search-status" class="text-[12px] font-mono tracking-widest text-white/50">READY</span>
     </div>
 
     <div class="relative group">
@@ -214,19 +229,23 @@
 
         <input type="text" id="ai-search-input"
                placeholder="输入需求，如：适合公寓养的..."
-               class="w-full bg-black/40 border border-white/10 p-4 text-[11px] tracking-widest focus:outline-none focus:border-blue-500/50 transition-all backdrop-blur-xl placeholder:opacity-30 text-white">
+               class="w-full bg-black/40 border border-white/10 p-4 text-[14px] tracking-widest focus:outline-none focus:border-blue-500/50 transition-all backdrop-blur-xl placeholder:opacity-30 text-white">
 
         <button onclick="executeAISearch()"
                 class="absolute right-2 top-2 bottom-2 px-4 bg-blue-500 text-black text-[10px] font-bold tracking-tighter hover:bg-white transition-all uppercase">
             MATCH
         </button>
     </div>
+    <button onclick="window.startTour()"
+            class="mt-4 w-full border border-blue-500/30 bg-blue-500/5 py-2 text-[12px] tracking-[0.3em] text-blue-400 hover:bg-blue-500 hover:text-black transition-all uppercase">
+        开启全球巡航模式 / START CRUISE
+    </button>
 
     <div class="w-full h-[1px] bg-white/10 mt-4 overflow-hidden">
         <div id="scan-bar" class="h-full bg-blue-500 w-0 transition-all duration-300"></div>
     </div>
 
-    <div class="mt-4 opacity-20 text-[8px] tracking-[0.4em] uppercase font-mono">
+    <div class="mt-4 opacity-60 text-[10px] tracking-[0.4em] uppercase font-mono">
         System Active // Port 8080
     </div>
 </div>
@@ -244,6 +263,7 @@
     let scene, camera, renderer, labelRenderer, globe, controls;
     let markers = [], labelObjects = [], mixers = [], allLines = [], dogsData = [];
     let gridMeshes = [];
+    let activeHoverMesh = null;
     // 全局状态记录上一个被划过的网格，用于 TWEEN 优化
     let lastHoveredGrid = null;
     let completedCount = 0;
@@ -252,19 +272,19 @@
 
     const loadJSON = path => fetch(path).then(r => r.ok ? r.json() : Promise.reject(`Error: ${path}`));
     const paths = [
-        './dist_assets/asia.json',
-        './dist_assets/africa.json',
-        './dist_assets/north_america.json',
-        './dist_assets/south_america.json',
-        './dist_assets/europe.json',
-        './dist_assets/australia.json',
+        './gene_dog_info/asia.json',
+        './gene_dog_info/africa.json',
+        './gene_dog_info/north_america.json',
+        './gene_dog_info/south_america.json',
+        './gene_dog_info/europe.json',
+        './gene_dog_info/australia.json',
     ];
 
     Promise.all(paths.map(loadJSON)).then(results => {
         dogsData = results.flat().map(dog => ({
             name: dog["犬种"], lat: dog["经纬度"][0], lon: dog["经纬度"][1],
             category: dog["犬科"],
-            model: dog["模型文件"], scale: 10, raw: dog
+            model: dog["模型文件"], scale: 25, raw: dog
         }));
         init();
     }).catch(e => {
@@ -342,7 +362,8 @@
                 const mat = new THREE.MeshPhongMaterial({
                     color: color,
                     transparent: true,
-                    opacity: matchedDogs.length > 0 ? 0.05 : 0.05, // 显著区分有无资产
+                    depthWrite: false, // 防止网格层之间相互遮挡产生的条纹 (Z-Fighting)
+                    opacity: matchedDogs.length > 0 ? 0.0 : 0.0, // 显著区分有无资产
                     side: THREE.DoubleSide,
                     emissive: color,
                     emissiveIntensity: matchedDogs.length > 0 ? 0.0 : 0 // 静态时只有资产网格微弱发光
@@ -361,22 +382,23 @@
 
 
                 // 3. 可选：在中心点放一个小点，验证 center 坐标是否偏移
-                const centerMarkerGeo = new THREE.SphereGeometry(0.5);
-                const centerMarkerMat = new THREE.MeshBasicMaterial({color: color});
-                const marker = new THREE.Mesh(centerMarkerGeo, centerMarkerMat);
+                if (matchedDogs.length > 0) {
+                    const centerMarkerGeo = new THREE.SphereGeometry(0.5);
+                    const centerMarkerMat = new THREE.MeshBasicMaterial({color: color});
+                    const marker = new THREE.Mesh(centerMarkerGeo, centerMarkerMat);
 
-                // 简单的经纬度转三维坐标公式
-                const phi = (90 - slot.center[0]) * (Math.PI / 180);
-                const theta = (slot.center[1] + 180) * (Math.PI / 180);
-                marker.position.set(
-                    -152 * Math.sin(phi) * Math.cos(theta),
-                    152 * Math.cos(phi),
-                    152 * Math.sin(phi) * Math.sin(theta)
-                );
-
-                gridMeshes.push(mesh);
-                gridGroup.add(mesh);
-                gridGroup.add(marker);
+                    // 简单的经纬度转三维坐标公式
+                    const phi = (90 - slot.center[0]) * (Math.PI / 180);
+                    const theta = (slot.center[1] + 180) * (Math.PI / 180);
+                    marker.position.set(
+                        -152 * Math.sin(phi) * Math.cos(theta),
+                        152 * Math.cos(phi),
+                        152 * Math.sin(phi) * Math.sin(theta)
+                    );
+                    gridGroup.add(marker);
+                    gridMeshes.push(mesh);
+                    gridGroup.add(mesh);
+                }
             });
         });
 
@@ -388,37 +410,38 @@
         const currentCategory = document.getElementById('target-category').innerText;
         if (!currentCategory || currentCategory === "Loading Family...") return;
 
-        console.log("正在高亮犬科类目:", currentCategory);
-
         gridMeshes.forEach(mesh => {
-            // 检查这个网格包含的犬科列表中是否有当前选中的类目
             const isMatch = mesh.userData.containedCategories === currentCategory;
             if (isMatch) {
-                // 高亮动效：变为高饱和蓝色并带有自发光
+                mesh.userData.isHighlighted = true; // 锁定
                 new TWEEN.Tween(mesh.material)
                     .to({opacity: 0.9, emissiveIntensity: 1.5}, 800)
                     .easing(TWEEN.Easing.Cubic.Out)
                     .start();
             } else {
-                // 虚化动效：其他非相关网格几乎消失
+                mesh.userData.isHighlighted = false; // 解锁
                 new TWEEN.Tween(mesh.material)
-                    .to({opacity: 0.02, emissiveIntensity: 0}, 500)
+                    .to({opacity: 0.0, emissiveIntensity: 0}, 500)
                     .start();
             }
         });
     };
 
     window.closeCard = () => {
+        renderer.setPixelRatio(window.devicePixelRatio);
+        if (tourTimer) clearTimeout(tourTimer); // 停止自动转场
         document.getElementById('info-card').style.transform = 'translateX(100%)';
+        hideAutoHoverInfo(); // 同时隐藏悬停信息
         controls.autoRotate = true;
 
-        // 重置所有网格到初始状态
         gridMeshes.forEach(mesh => {
+            mesh.userData.isHighlighted = false; // 彻底解锁
             new TWEEN.Tween(mesh.material)
-                .to({opacity: 0.15, emissiveIntensity: 0}, 500)
+                .to({opacity: 0.0, emissiveIntensity: 0}, 500)
                 .start();
         });
 
+        // 相机回退动画
         new TWEEN.Tween(camera.position).to({z: 600}, 1500).easing(TWEEN.Easing.Exponential.Out).start();
     };
 
@@ -426,7 +449,7 @@
     function createHelperLines() {
         const helper = new THREE.LineSegments(
             new THREE.EdgesGeometry(new THREE.SphereGeometry(150.5, 36, 18)), // 360/10, 180/10
-            new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.1})
+            new THREE.LineBasicMaterial({color: "#f3f0f0", transparent: true, opacity: 0.05})
         );
         globe.add(helper);
     }
@@ -438,7 +461,7 @@
         const div = document.createElement('div');
         div.id = 'ai-reason-bubble';
         // 初始状态：透明且禁用点击
-        div.className = `absolute opacity-0 translate-y-4 transition-all duration-700 w-[300px] z-[110]`;
+        div.className = `absolute opacity-0 translate-y-4 transition-all duration-700 w-[300px] z-[110] text-[16px]`;
         div.style.pointerEvents = 'none';
 
         div.innerHTML = `
@@ -451,13 +474,13 @@
 
             <div class="flex flex-col space-y-2">
                 <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                    <span class="text-[9px] font-bold tracking-[0.3em] uppercase text-blue-400">AI Analysis Report</span>
-                    <span class="text-[8px] font-mono opacity-30">AUTO-DISMISS ENABLED</span>
+                    <span class="text-[12px] font-bold tracking-[0.3em] uppercase text-blue-400">AI 推荐原因</span>
+                    <span class="text-[9px] font-mono opacity-30">犬系宇宙</span>
                 </div>
 
                 <div class="flex items-start space-x-3 pt-1">
                     <div class="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                    <p id="ai-reason-text" class="text-[11px] leading-relaxed font-light tracking-wide text-blue-50/90 italic">
+                    <p id="ai-reason-text" class="text-[14px] leading-relaxed font-light tracking-wide text-blue-50/90 italic">
                         Scanning assets...
                     </p>
                 </div>
@@ -474,13 +497,12 @@
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     const hoverUI = document.getElementById('hover-info');
-    const hoverName = document.getElementById('hover-name');
-    const hoverOrigin = document.getElementById('hover-origin');
+
 
     function init() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(450, 150,150);
+        camera.position.set(450, 150, 150);
         camera.lookAt(0, 0, 0);
 
         renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
@@ -511,33 +533,41 @@
         const loader = new THREE.TextureLoader();
         const gltfLoader = new GLTFLoader();
 
-        globe.add(new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.MeshBasicMaterial({color: "#090909"})));
+        scene.add(new THREE.Mesh(new THREE.SphereGeometry(150, 64, 64), new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.BackSide,
+            uniforms: {glowColor: {value: new THREE.Color("#050505")}},
+            vertexShader: `varying vec3 vNormal;
+        void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+            fragmentShader: `
+        varying vec3 vNormal;
+    uniform vec3 glowColor;
+    void main() {
+        // 1. 将 0.7 降至 0.4：缩小发光半径，让球体大部分区域变暗
+        // 2. 将 4.0 升至 8.0：让光线急剧收缩到极边缘
+        float intensity = pow(0.7 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
+
+        // 3. 额外保险：乘以一个系数（如 0.8）直接压低整体亮度
+        gl_FragColor = vec4(glowColor, intensity * 0.4);
+        }`
+        })));
+
         loader.load('./assets/earth-topology.png', (tex) => {
             const mapMat = new THREE.MeshBasicMaterial({
                 map: tex,
                 color: "#3b82f6",
                 transparent: true,
+                opacity: 1.0,
+                depthWrite: false,
                 blending: THREE.AdditiveBlending
             });
             globe.add(new THREE.Mesh(new THREE.SphereGeometry(150.5, 64, 64), mapMat));
             document.getElementById('loading').style.opacity = '0';
             setTimeout(() => document.getElementById('loading').remove(), 1000);
         });
-
-        // 建议使用 18 * 36 的分段，这样每格刚好是 10度 (180/18, 360/36)
-        const gridSegmentsLat = 18;
-        const gridSegmentsLon = 36;
-
-        const globeGrid = new THREE.LineSegments(
-            new THREE.EdgesGeometry(new THREE.SphereGeometry(151.5, gridSegmentsLon, gridSegmentsLat)),
-            new THREE.LineBasicMaterial({
-                color: "#3b82f6", // 使用工程蓝，看得更清楚
-                transparent: true,
-                blending: THREE.AdditiveBlending,
-                opacity: 0.001
-            })
-        );
-        globe.add(globeGrid);
 
         const dracoLoader = new DRACOLoader();
         // 设置解压库的地址（使用 Google 提供的 CDN）
@@ -547,22 +577,40 @@
         let loadedCount = 0;
         const pendingTweens = []; // 存放准备好的动画
 
+        const autoCorrectOrientation = (model) => {
+            // 更新模型的矩阵，确保获取最新的包围盒
+            model.updateMatrixWorld(true);
+            const box = new THREE.Box3().setFromObject(model);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+
+            // 打印一下，方便你在控制台看哪些狗被旋转了
+            // console.log(`${model.userData.dogIdentifier} 尺寸:`, size);
+
+            // 逻辑：如果宽度(X)明显大于深度(Z)，说明它是横着建模的
+            if (size.x > size.z * 1.1) {
+                // 绕 Y 轴转 90 度，把长的一边转到 Z 轴上
+                // 注意：有的模型可能需要 -Math.PI / 2，取决于头在左还是右
+                model.rotateY(Math.PI / 2);
+            }
+        };
+
         dogsData.forEach((dog, index) => {
             gltfLoader.load(dog.model, (gltf) => {
                 const model = gltf.scene;
-                // 1. 必须给这个模型根节点打上标记
-                // 关键：初始化业务数据
                 model.userData.dogIdentifier = dog.name;
-                model.userData.actions = {}; // 必须初始化为空对象
+                model.userData.actions = {};
 
+                autoCorrectOrientation(model);
 
-                // 计算坐标
+                // 1. 计算坐标
                 const box = new THREE.Box3().setFromObject(model);
                 const groundR = 150.5 + (-box.min.y * dog.scale);
                 const tPhi = (90 - dog.lat) * (Math.PI / 180);
                 const tTheta = (dog.lon * (Math.PI / 180)) + LNG_OFFSET;
+
                 const endP = new THREE.Vector3().setFromSphericalCoords(groundR, tPhi, tTheta);
-                const skyR = groundR + 30; // 悬停高度
+                const skyR = groundR + 30;
                 const startP = new THREE.Vector3().setFromSphericalCoords(skyR, tPhi, tTheta);
 
                 // 初始状态：全部停留在天空
@@ -570,43 +618,67 @@
                 model.position.copy(startP);
                 model.lookAt(0, 0, 0);
                 model.rotateX(-Math.PI / 2);
+                model.rotateY(Math.PI);
+
+                // --- 【修改：初始即生成的科技感连接线】 ---
+                // 使用 BufferGeometry 直接连接 startP 和 endP
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints([startP, endP]);
+                const lineMaterial = new THREE.LineDashedMaterial({
+                    color: 0x3b82f6,
+                    dashSize: 10,          // 调小一点，更有精致感
+                    gapSize: 1,
+                    transparent: true,
+                    opacity: 0.9,         // 初始状态稍隐约一些
+                    depthWrite: false
+                });
+                const connectionLine = new THREE.Line(lineGeometry, lineMaterial);
+                connectionLine.computeLineDistances();
+                globe.add(connectionLine);
+                // ---------------------------------------
 
                 if (gltf.animations && gltf.animations.length > 0) {
                     const mixer = new THREE.AnimationMixer(model);
-
                     gltf.animations.forEach((clip) => {
-                        // 将动画存储到根节点的 actions 对象中
-                        // 使用 clip.name 作为 key
                         const action = mixer.clipAction(clip);
                         model.userData.actions[clip.name] = action;
                     });
-
-                    // 默认播放第一个动画
                     const firstActionName = gltf.animations[0].name;
                     model.userData.actions[firstActionName].play();
                     model.userData.currentAction = model.userData.actions[firstActionName];
-
-                    mixers.push(mixer); // 确保这个 mixer 被推入了全局更新队列
+                    mixers.push(mixer);
                 }
 
                 globe.add(model);
                 markers.push(model);
 
-                // 2. 创建动画但不立即 .start()，先存进数组
+                // 2. 动画部分：落地时收缩线条
                 const dropTween = new TWEEN.Tween(model.position)
                     .to({x: endP.x, y: endP.y, z: endP.z}, 500)
-                    .delay(index * 40) // 交替落下的间隔
+                    .delay(index * 40)
                     .easing(TWEEN.Easing.Bounce.Out)
+                    .onUpdate(() => {
+                        // 线条起点随模型下落，终点固定在地面
+                        lineGeometry.setFromPoints([model.position, endP]);
+                        connectionLine.computeLineDistances();
+                    })
                     .onComplete(() => {
                         updateModelOrientation(model);
+
+                        // 落地后彻底消失
+                        new TWEEN.Tween(lineMaterial)
+                            .to({ opacity: 0 }, 300)
+                            .onComplete(() => {
+                                globe.remove(connectionLine);
+                                lineGeometry.dispose();
+                                lineMaterial.dispose();
+                            })
+                            .start();
                     });
 
                 pendingTweens.push(dropTween);
 
-                // 3. 检查是否全部模型都已在天空就位
                 loadedCount++;
                 if (loadedCount === dogsData.length) {
-                    // 所有狗狗已在起点“集合”完毕，延迟 1 秒后统一开闸落下
                     setTimeout(() => {
                         document.getElementById('search-status').innerText = "DEPLOYING ASSETS...";
                         pendingTweens.forEach(t => t.start());
@@ -634,10 +706,19 @@
 
         controls = new OrbitControls(camera, renderer.domElement);
         controls.autoRotate = true;
-        controls.autoRotateSpeed = -0.8;
-        controls.enableDamping = true;
+        controls.autoRotateSpeed = -4.8;
+        controls.enableDamping = false;
         controls.minDistance = 300;
         controls.maxDistance = 600;
+
+        // 当用户开始交互时，停止自动任务
+        controls.addEventListener('start', () => {
+            if (tourTimer) {
+                clearTimeout(tourTimer);
+                console.log("停止巡航：检测到用户交互");
+            }
+            TWEEN.removeAll(); // 停止当前的相机补间动画
+        });
 
         window.addEventListener('mousedown', onPointerDown);
 
@@ -665,10 +746,133 @@
 
     }
 
+    // --- 电影级自动转场系统 ---
+
+    // 1. 定义你想展示的顺序 (品种名称需与 JSON 中的“犬种”一致)
+    const TOUR_SEQUENCE = ["柯基", "拉布拉多", "边牧", "阿拉斯加", "中华田园犬"];
+    let tourIndex = 0;
+    let tourTimer = null;
+
+    async function startCinematicTour() {
+        console.log("🎬 开启自动巡检模式...");
+        controls.autoRotate = false; // 关闭自由旋转
+        runTourStep();
+    }
+
+    // A. 显示并填充悬停信息
+    function showAutoHoverInfo(gridMesh) {
+        const hoverUI = document.getElementById('hover-info');
+        document.getElementById('hover-name').innerText = gridMesh.userData.containedDogs;
+        document.getElementById('hover-origin').innerText = `${gridMesh.userData.containedCategories}`;
+
+        hoverUI.style.opacity = '1';
+        hoverUI.style.transform = 'translateY(0) scale(1)';
+    }
+
+    // B. 隐藏悬停信息
+    function hideAutoHoverInfo() {
+        const hoverUI = document.getElementById('hover-info');
+        hoverUI.style.opacity = '0';
+        hoverUI.style.transform = 'translateY(10px) scale(0.95)';
+    }
+
+    // C. 核心：计算 3D 网格在屏幕上的 XY 坐标
+    function updateAutoHoverPosition(gridMesh) {
+        const hoverUI = document.getElementById('hover-info');
+
+        // 获取网格中心点的 3D 坐标
+        const center = gridMesh.userData.center;
+        const phi = (90 - center[0]) * (Math.PI / 180);
+        const theta = (center[1] * (Math.PI / 180)) + LNG_OFFSET;
+        const worldPos = new THREE.Vector3().setFromSphericalCoords(152, phi, theta);
+
+        // 将 3D 坐标投影到屏幕 2D 坐标
+        worldPos.project(camera);
+
+        const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-(worldPos.y * 0.5 - 0.5) * window.innerHeight);
+
+        // 将 UI 定位到该坐标（稍微偏移一点防止遮挡中心）
+        hoverUI.style.left = `${x + 20}px`;
+        hoverUI.style.top = `${y - 40}px`;
+    }
+
+    // --- 增强版自动巡航逻辑 ---
+    async function runTourStep() {
+        if (tourIndex >= TOUR_SEQUENCE.length) {
+            tourIndex = 0; // 循环播放
+        }
+
+        const targetDogName = TOUR_SEQUENCE[tourIndex];
+        const targetGrid = gridMeshes.find(m => m.userData.containedDogs === targetDogName);
+        const targetModel = markers.find(m => m.userData.dogIdentifier === targetDogName);
+
+        if (!targetGrid || !targetModel) {
+            tourIndex++;
+            runTourStep();
+            return;
+        }
+
+        // 1. 模拟网格高亮
+        highlightGrid(targetGrid);
+
+        // 2. 计算相机路径
+        const center = targetGrid.userData.center;
+        const phi = (90 - center[0]) * (Math.PI / 180);
+        const theta = (center[1] * (Math.PI / 180)) + LNG_OFFSET;
+        const targetPos = new THREE.Vector3().setFromSphericalCoords(450, phi, theta);
+
+        // 3. 开始转场动画
+        new TWEEN.Tween(camera.position)
+            .to({x: targetPos.x, y: targetPos.y, z: targetPos.z}, 2000)
+            .easing(TWEEN.Easing.Cubic.InOut)
+            .onUpdate(() => {
+                camera.lookAt(0, 0, 0);
+                // 关键：在转场过程中，实时更新悬停卡片的位置，使其“吸附”在网格上
+                updateAutoHoverPosition(targetGrid);
+            })
+            // .onStart(() => {
+            //     // 显示悬停卡片并注入数据
+            //     showAutoHoverInfo(targetGrid);
+            // })
+            .onComplete(() => {
+                // 4. 到达位置后，弹出侧边详细信息卡片
+                const dogData = dogsData.find(d => d.name === targetDogName);
+                window.renderDogCard(dogData.raw, targetModel);
+                showAutoHoverInfo(targetGrid);
+
+                // 5. 5秒后关闭悬停卡片并进入下一站
+                tourTimer = setTimeout(() => {
+                    hideAutoHoverInfo();
+                    tourIndex++;
+                    runTourStep();
+                }, 5000);
+            })
+            .start();
+    }
+
+    // 辅助函数：让网格亮起
+    function highlightGrid(mesh) {
+        // 先重置所有网格
+        gridMeshes.forEach(m => {
+            new TWEEN.Tween(m.material).to({opacity: 0, emissiveIntensity: 0}, 500).start();
+        });
+
+        // 高亮目标
+        new TWEEN.Tween(mesh.material)
+            .to({opacity: 0.8, emissiveIntensity: 2.0}, 1000)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start();
+    }
+
+    // 暴露给 window，方便在控制台或按钮触发
+    window.startTour = startCinematicTour;
+
     // ==========================================
     // 1. 统一渲染函数：负责更新侧边栏 UI
     // ==========================================
     window.renderDogCard = (dogRaw, targetModel) => {
+        renderer.setPixelRatio(1);
         // 设置当前活跃模型，确保动作切换按钮可用
         window.activeModel = targetModel;
 
@@ -681,8 +885,8 @@
         document.getElementById('info-content').innerHTML = `
         <div class="sticky top-0 z-20 bg-[#0a0a0a]/80 backdrop-blur-md pb-4 mb-4 border-b border-white/5">
             <div class="relative w-full h-48 overflow-hidden rounded-2xl border border-blue-500/20 bg-black group shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-                <model-viewer src="${dogRaw["模型文件"]}" auto-rotate camera-controls autoplay shadow-intensity="1" exposure="0.5" class="w-full h-full"></model-viewer>
-                <div class="absolute top-2 left-2 px-2 py-0.5 border border-blue-500/30 rounded text-[7px] text-blue-400 font-bold uppercase animate-pulse">
+                <model-viewer src="${dogRaw["模型文件"]}" auto-rotate camera-controls autoplay min-dpr="2" dpr="2" shadow-intensity="1" min-pixel-ratio="2" interpolation-decay="0" environment-image="neutral" powerPreference="high-performance"  exposure="1.0" class="w-full h-full"></model-viewer>
+                <div class="absolute top-2 left-2 px-2 py-0.5 border border-blue-500/30 rounded text-[14px] text-blue-400 font-bold uppercase animate-pulse">
                     ${dogRaw["犬种"]} 3D 资产预览
                 </div>
             </div>
@@ -693,7 +897,7 @@
             <div class="flex flex-wrap gap-2 mt-3">
                 ${Object.keys(actions).map(act => `
                     <button onclick="event.stopPropagation(); window.switchActionByModel(window.activeModel, '${act}')"
-                            class="px-3 py-1.5 border border-white/10 rounded text-[9px] hover:bg-blue-600 transition-all uppercase">
+                            class="px-3 py-1.5 border border-white/10 rounded text-[10px] hover:bg-blue-600 transition-all uppercase">
                         ${act}
                     </button>`).join('')}
             </div>
@@ -701,20 +905,20 @@
 
         <section class="mb-6">
             <span class="info-tag">核心参数 / CORE SPEC</span>
-            <div class="grid grid-cols-2 border border-white/10 rounded-lg overflow-hidden bg-white/5 text-[11px]">
-                <div class="p-3 border-r border-b border-white/10"><span class="opacity-40 block">寿命</span><span class="text-blue-200">${dogRaw["基础信息"]["寿命"]}</span></div>
-                <div class="p-3 border-b border-white/10"><span class="opacity-40 block">产地</span><span class="text-blue-200">${dogRaw["精确产地"]}</span></div>
-                <div class="p-3 border-r border-white/10"><span class="opacity-40 block">高度/体重</span><span class="text-blue-200">${dogRaw["体型外貌"]["肩高"]} / ${dogRaw["体型外貌"]["体重"]}</span></div>
+            <div class="grid grid-cols-2 border border-white/10 rounded-lg overflow-hidden bg-white/5 text-[14px]">
+                <div class="p-3 border-r border-b border-white/10"><span class="opacity-80 block">寿命</span><span class="text-blue-200">${dogRaw["基础信息"]["寿命"]}</span></div>
+                <div class="p-3 border-b border-white/10"><span class="opacity-80 block">产地</span><span class="text-blue-200">${dogRaw["精确产地"]}</span></div>
+                <div class="p-3 border-r border-white/10"><span class="opacity-80 block">高度/体重</span><span class="text-blue-200">${dogRaw["体型外貌"]["肩高"]} / ${dogRaw["体型外貌"]["体重"]}</span></div>
                 <div class="p-3"><span class="opacity-40 block">毛色</span><span class="text-blue-200">${dogRaw["体型外貌"]["毛色"]}</span></div>
             </div>
         </section>
 
         <section class="mb-6">
             <span class="info-tag">生存需求 / REQUIREMENTS</span>
-            <div class="space-y-1 bg-white/5 p-3 rounded-lg border border-white/5 text-[11px]">
-                <div class="flex justify-between py-1 border-b border-white/5 last:border-0"><span class="opacity-40">🏃 运动需求</span><span>${dogRaw["饲养指南"]["运动需求"]}</span></div>
-                <div class="flex justify-between py-1 border-b border-white/5 last:border-0"><span class="opacity-40">🧠 训练难度</span><span>${dogRaw["饲养指南"]["训练难度"]}</span></div>
-                <div class="flex justify-between py-1"><span class="opacity-40">👨🏻 适合人群</span><span>${dogRaw["饲养指南"]["适合人群"]}</span></div>
+            <div class="space-y-1 bg-white/2 p-3 rounded-lg border border-white/5 text-[14px]">
+                <div class="flex justify-between py-1 border-b border-white/5 last:border-0"><span class="opacity-70">🏃 运动需求</span><span>${dogRaw["饲养指南"]["运动需求"]}</span></div>
+                <div class="flex justify-between py-1 border-b border-white/5 last:border-0"><span class="opacity-70">🧠 训练难度</span><span>${dogRaw["饲养指南"]["训练难度"]}</span></div>
+                <div class="flex justify-between py-1"><span class="opacity-70">👨🏻 适合人群</span><span>${dogRaw["饲养指南"]["适合人群"]}</span></div>
             </div>
         </section>
 
@@ -726,6 +930,31 @@
 
         // 显示卡片
         document.getElementById('info-card').style.transform = 'translateX(0)';
+        // 针对所有的 model-viewer 实例强制提升质量
+
+        const mv = document.querySelector('model-viewer');
+        if (mv) {
+            // 1. 强制固定 DPR，防止自动降级
+            mv.setAttribute('dpr', window.devicePixelRatio || 2);
+            mv.setAttribute('min-dpr', '2');
+
+            // 2. 禁用性能自适应
+            mv.setAttribute('power-preference', 'high-performance');
+
+            // 3. 提高渲染分辨率
+            mv.setAttribute('render-scale', '1');
+
+            // 4. 强制重绘
+            mv.dispatchEvent(new CustomEvent('reload'));
+
+            // 5. 监听加载完成后再次确认质量
+            mv.addEventListener('load', () => {
+                mv.dpr = window.devicePixelRatio || 2;
+                mv.minDpr = 2;
+                // 强制刷新
+                mv.style.transform = 'translateZ(0)';
+            });
+        }
     };
 
     // ==========================================
@@ -900,7 +1129,9 @@
                 window.renderDogCard(shibaData.raw, shibaModel);
 
                 // 2. 弹出 3D 理由气泡
-                const text =  "匹配到『柴犬』：其独特的尖嘴犬基因符合您的审美，适合城市环境。";
+                const text = "匹配到『柴犬』：\n" +
+                    "独立、不爱叫、爱干净、体型适中；\n" +
+                     "长得还治愈，不过有点倔哦。";
                 showAiReason(text);
 
                 // 3. 联动高亮网格
@@ -1000,77 +1231,100 @@
         }
     }
 
+    // 辅助函数：统一清理悬停效果
+    function hideHoverEffects() {
+        if (lastHoveredGrid) {
+            // 关键逻辑：如果这个网格被“类目高亮”锁定了，鼠标离开时让它回到高亮准态
+            if (lastHoveredGrid.userData.isHighlighted) {
+                new TWEEN.Tween(lastHoveredGrid.material)
+                    .to({opacity: 0.9, emissiveIntensity: 1.5}, 300)
+                    .start();
+            } else {
+                // 如果没被锁定，才彻底变回透明/暗淡
+                new TWEEN.Tween(lastHoveredGrid.material)
+                    .to({opacity: 0.0, emissiveIntensity: 0}, 400)
+                    .start();
+            }
+            lastHoveredGrid = null;
+        }
+        // 隐藏 UI 气泡
+        hoverUI.style.opacity = '0';
+    }
+
+    // 定义一个局部 Y 轴向量，用于自转参考
+    // 在循环外定义一个局部向上向量，避免重复创建对象提升性能
+    const LOCAL_UP = new THREE.Vector3(0, 1, 0);
+
     function animate() {
         requestAnimationFrame(animate);
+        const delta = clock.getDelta();
 
-        // --- 优化：使用 TWEEN 进行补间动画 ---
+        // 1. 更新骨骼动画（跑、跳、待机）
+        mixers.forEach(m => m.update(delta));
+
+        // 2. 更新补间动画（相机平滑移动、UI 渐变）
         TWEEN.update();
 
-        // 原有的混合器更新逻辑
-        if (mixers) mixers.forEach(m => m.update(clock.getDelta()));
+        // 3. 更新控制器（处理地球自转）
+        controls.update();
 
-        // --- 核心：射线检测逻辑 (保持原样) ---
+        // --- 【新增：狗狗原地自转逻辑】 ---
+        markers.forEach(model => {
+            // 只有当这只狗不是当前侧边栏展示的“主角”时，才进行自转
+            // 这样可以方便用户在侧边栏观察静止的模型
+            if (window.activeModel !== model) {
+                // 参数 0.8 是转速，可根据喜好调整（数值越大转得越快）
+                model.rotateOnAxis(LOCAL_UP, 0.4 * delta);
+            }
+        });
+        // --------------------------------
+
+        // 4. 射线检测（保持你原有的逻辑）
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(gridMeshes);
 
         if (intersects.length > 0) {
             const currentGrid = intersects[0].object;
+            if (lastHoveredGrid !== currentGrid) {
+                hideHoverEffects();
+                lastHoveredGrid = currentGrid;
+                new TWEEN.Tween(currentGrid.material)
+                    .to({opacity: 1.0, emissiveIntensity: 2.0}, 200)
+                    .start();
 
-            // --- 修改 1: 检查网格是否有内容且是否为新网格 ---
-            if (currentGrid.userData.containedDogs !== 'null') {
-
-                if (lastHoveredGrid !== currentGrid) {
-                    // 如果划到了新网格，先优雅地熄灭旧网格
-                    resetGridEffect(lastHoveredGrid);
-
-                    // --- 修改 2: 使用 TWEEN 激活新网格的高亮 ---
-                    // 持续时间 200ms (感知即时)，使用三次缓出曲线 (流畅感)
-                    new TWEEN.Tween(currentGrid.material)
-                        .to({emissiveIntensity: 1.2, opacity: 0.6}, 200)
-                        .easing(TWEEN.Easing.Cubic.Out)
-                        .start();
-
-                    lastHoveredGrid = currentGrid;
-
-                    // --- 修改 3: 更新 UI (保持原样) ---
-                    const dogInfo = dogsData.find(d => d.name === currentGrid.userData.containedDogs);
-                    hoverName.innerText = currentGrid.userData.containedDogs;
-                    hoverOrigin.innerText = dogInfo ? `ORIGIN: ${dogInfo.raw["精确产地"]}` : 'GLOBAL';
-
-                    // 显示卡片
+                if (currentGrid.userData.containedDogs !== 'null') {
                     hoverUI.style.opacity = '1';
-                    hoverUI.style.transform = 'translateY(0px)';
+                    hoverUI.style.transform = 'translateY(0) scale(1)';
+                    document.getElementById('hover-name').innerText = currentGrid.userData.containedDogs;
+                    document.getElementById('hover-origin').innerText = currentGrid.userData.containedCategories;
                 }
-            } else {
-                // 划到了空白网格，关闭高亮
-                resetGridEffect(lastHoveredGrid);
-                lastHoveredGrid = null;
-                hideHoverUI();
             }
         } else {
-            // --- 修改 4: 没划到任何东西，关闭高亮 ---
-            resetGridEffect(lastHoveredGrid);
-            lastHoveredGrid = null;
-            hideHoverUI();
+            hideHoverEffects();
         }
 
-        if (controls) controls.update();
-        if (renderer) renderer.render(scene, camera);
-        if (labelRenderer) labelRenderer.render(scene, camera);
+        // 5. 双重渲染（3D 场景 + 2D 标签）
+        renderer.render(scene, camera);
+        labelRenderer.render(scene, camera);
     }
+
 
     // --- 辅助函数：平滑重置网格状态 ---
     function resetGridEffect(mesh) {
-        if (mesh && mesh.material) {
-            // 如果该网格处于“搜索锁定”状态，不执行熄灭
-            // 我们通过阈值判断，搜索锁定的强度通常设为 2.0
-            if (mesh.material.emissiveIntensity < 1.5) {
-                new TWEEN.Tween(mesh.material)
-                    .to({emissiveIntensity: 0, opacity: 0.3}, 400) // 熄灭稍慢
-                    .easing(TWEEN.Easing.Cubic.Out)
-                    .start();
-            }
-        }
+        if (!mesh || !mesh.material) return;
+
+        // 关键：停止该材质上所有正在运行的动画，防止拉扯
+        TWEEN.getAll().forEach(t => {
+            if (t._object === mesh.material) t.stop();
+        });
+
+        new TWEEN.Tween(mesh.material)
+            .to({
+                emissiveIntensity: 0,
+                opacity: 0.05 // 恢复到你初始化的透明度
+            }, 400)
+            .easing(TWEEN.Easing.Cubic.Out)
+            .start();
     }
 
     // --- 辅助函数：隐藏悬停 UI ---
@@ -1085,6 +1339,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
     };
+
 </script>
 </body>
 </html>
